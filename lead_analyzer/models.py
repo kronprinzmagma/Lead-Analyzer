@@ -34,3 +34,22 @@ class RowResult:
     zahl: int                      # 1..5
     reason: str = ""               # Kurzbegründung (Begründungsspalte / Log)
     verdicts: list[DimensionVerdict] = field(default_factory=list)  # für Lauf-Log (AC6/AC11)
+
+
+@dataclass
+class FetchResult:
+    """Roh-Fakten eines HTTP-Abrufs (fetch-once-parse-many).
+
+    Trägt alles, was Dimension 1 (Phase 2) UND die späteren Dimensionen 2/4/5/6
+    (Phase 3) aus einem einzigen Abruf lesen. Wird in `fetch.fetch()` (Plan 02-02)
+    gefüllt; die reinen Analyzer arbeiten offline nur über dieses Objekt.
+    """
+    url: str                       # die tatsächlich angefragte Variante
+    ok: bool                       # True gdw. eine 200–399-Antwort kam
+    status: int | None             # HTTP-Status, oder None falls keine Antwort
+    final_url: str | None          # response.url nach Redirects
+    redirected: bool
+    ssl_ok: bool                   # True bei verify=True-Erfolg; False bei Fallback / ohne TLS
+    headers: dict                  # Response-Header (für Phase-3-Dimensionen)
+    html: str | None               # dekodierter, grössenbegrenzter Body; None falls unerreichbar
+    error: str | None              # Notiz-String bei Fehler; None bei Erfolg
