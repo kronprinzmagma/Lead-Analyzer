@@ -18,10 +18,10 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 - [ ] **BED-02**: Dimension 2 *Technische Basis* wird real gemessen: HTTPS + gültiges SSL-Zertifikat; eigene Domain vs. Gratis-Subdomain (wixsite, jimdosite, business.site, …). *(AC11, AC3)*
 - [ ] **BED-03**: Dimension 3 *Mobile & Performance* wird gemessen: Viewport-Meta (immer) + PageSpeed/Lighthouse-Performance wenn verfügbar; sonst heuristischer Fallback mit Vermerk. *(AC11, AC8)*
 - [ ] **BED-04**: Dimension 4 *Auffindbarkeit (SEO)* wird real gemessen: Title/Meta-Description (Vorhandensein+Länge), Canonical, robots.txt/sitemap.xml, H1, noindex. *(AC11, AC3)*
-- [ ] **BED-05**: Dimension 5 *KI-/Answer-Engine-Bereitschaft* wird mind. heuristisch gemessen: JSON-LD/Schema.org, Open-Graph-Tags, Microdata. *(AC11)*
-- [ ] **BED-06**: Dimension 6 *Inhalt, Aktualität & Conversion* wird mind. heuristisch gemessen: Kontaktformular, `tel:`/`mailto:`, Impressum, Copyright-Jahr/Generator als Aktualitäts-Proxy. *(AC11)*
-- [ ] **BED-07**: Die 6 Dimensions-Befunde werden deterministisch zum 1–5-Score aggregiert gemäss Banddefinition in `docs/scoring_website_bedarf.md`; «keine erreichbare Website» überschreibt immer auf 5. *(AC3, AC11)*
-- [ ] **BED-08**: Score-Richtung ist monoton korrekt: mehr/grössere Lücken ⇒ höherer Bedarf (per Richtungs-Tests abgesichert). *(AC3)*
+- [x] **BED-05**: Dimension 5 *KI-/Answer-Engine-Bereitschaft* wird mind. heuristisch gemessen: JSON-LD/Schema.org, Open-Graph-Tags, Microdata. *(AC11)*
+- [x] **BED-06**: Dimension 6 *Inhalt, Aktualität & Conversion* wird mind. heuristisch gemessen: Kontaktformular, `tel:`/`mailto:`, Impressum, Copyright-Jahr/Generator als Aktualitäts-Proxy. *(AC11)*
+- [x] **BED-07**: Die 6 Dimensions-Befunde werden deterministisch zum 1–5-Score aggregiert gemäss Banddefinition in `docs/scoring_website_bedarf.md`; «keine erreichbare Website» überschreibt immer auf 5. *(AC3, AC11)*
+- [x] **BED-08**: Score-Richtung ist monoton korrekt: mehr/grössere Lücken ⇒ höherer Bedarf (per Richtungs-Tests abgesichert). *(AC3)*
 
 ### ZK — Zahlungskräftigkeit-Score
 - [ ] **ZK-01**: Pro Kunde wird ein 1–5-Score aus öffentlichen Signalen geschätzt: Rechtsform aus Firmenname (AG/GmbH/Einzelfirma), Branchen-Kaufkraft-Tier, Website-Grössensignale (mehrere Standorte/Team/Karriere). *(AC5)*
@@ -34,7 +34,7 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 - [x] **ROB-03**: Eine fehlerhafte Zeile/Stage isoliert (per-row Exception-Boundary); der Gesamtlauf läuft weiter. *(AC1, AC4)*
 
 ### NACH — Nachvollziehbarkeit
-- [ ] **NACH-01**: Zu jedem Kunden ist erkennbar, welche Signale/Dimensionen den Bedarf-Score und welche Annahmen den Zahlungskräftigkeit-Score getrieben haben — über eine Begründungsspalte im Output und/oder ein Lauf-Log. *(AC6, AC5, AC11)*
+- [x] **NACH-01**: Zu jedem Kunden ist erkennbar, welche Signale/Dimensionen den Bedarf-Score und welche Annahmen den Zahlungskräftigkeit-Score getrieben haben — über eine Begründungsspalte im Output und/oder ein Lauf-Log. *(AC6, AC5, AC11)*
 
 ### PERF — Wiederholbarkeit, Cache, Limits
 - [ ] **PERF-01**: Ergebnisse pro URL werden inkrementell auf Platte gecacht (atomic write); ein erneuter Lauf nutzt den Cache, ein Abbruch verwirft nicht die ganze Arbeit. *(AC7)*
@@ -74,11 +74,11 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 | ROB-03 | Phase 2 | Complete |
 | BED-02 | Phase 3 | Pending |
 | BED-04 | Phase 3 | Pending |
-| BED-05 | Phase 3 | Pending |
-| BED-06 | Phase 3 | Pending |
-| BED-07 | Phase 3 | Pending |
-| BED-08 | Phase 3 | Pending |
-| NACH-01 | Phase 3 | Pending |
+| BED-05 | Phase 3 | Complete |
+| BED-06 | Phase 3 | Complete |
+| BED-07 | Phase 3 | Complete |
+| BED-08 | Phase 3 | Complete |
+| NACH-01 | Phase 3 | Complete |
 | ZK-01 | Phase 4 | Pending |
 | ZK-02 | Phase 4 | Pending |
 | ZK-03 | Phase 4 | Pending |

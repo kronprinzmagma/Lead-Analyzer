@@ -60,8 +60,8 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Each customer has a traceable record (reason column and/or run-log) of which dimensions/signals drove the Bedarf score (AC6, AC11).
 **Plans**: 4 plans
 - [ ] 03-01-PLAN.md — Dim 2 Technische Basis + Dim 4 SEO (really measured, BED-02/04)
-- [ ] 03-02-PLAN.md — Dim 5 KI-Readiness + Dim 6 Inhalt/Aktualität (heuristic, BED-05/06)
-- [ ] 03-03-PLAN.md — scoring.bedarf 6-dim aggregation + reasons.py (BED-07/08, NACH-01)
+- [x] 03-02-PLAN.md — Dim 5 KI-Readiness + Dim 6 Inhalt/Aktualität (heuristic, BED-05/06)
+- [x] 03-03-PLAN.md — scoring.bedarf 6-dim aggregation + reasons.py (BED-07/08, NACH-01)
 - [ ] 03-04-PLAN.md — pipeline wiring: parse-once, 6 verdicts, Begründung, modern→1/broken→5
 **UI hint**: no
 
