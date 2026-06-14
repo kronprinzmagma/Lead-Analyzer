@@ -101,7 +101,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Dimension 3 (Mobile & Performance) uses viewport-meta always and PageSpeed/Lighthouse when available; without network/key it degrades to the heuristic with a note (AC11).
   2. The PageSpeed client exposes availability, uses batching/retry/backoff and respects rate limits / `Retry-After`, with a per-run budget and a `--no-pagespeed` flag (AC8).
   3. A PageSpeed error or quota limit lowers nothing and aborts nothing — the run completes with degraded but valid scores (AC8, AC4).
-**Plans**: TBD
+**Plans**: 5 plans
+  - [ ] 06-01-PLAN.md — Wave 0: RED test scaffolds (.env loader, performance analyzer, PSI client) + inversion-guard golden test + conftest make_ps_result
+  - [ ] 06-02-PLAN.md — stdlib .env loader + PsResult dataclass + --no-pagespeed flag (config/cli/models)
+  - [ ] 06-03-PLAN.md — performance.py Dim-3 analyzer: viewport baseline + Lighthouse refinement (inversion guard)
+  - [ ] 06-04-PLAN.md — clients/pagespeed.py optional PSI client: budget, semaphore, backoff, namespaced cache
+  - [ ] 06-05-PLAN.md — wire Dim 3 into pipeline (one shared client) + offline byte-identical regression
 
 ### Phase 7: Hardening + README + Full Sample Run
 **Goal**: The tool is set-up-and-run in under 5 minutes and produces a justified full-sample output, including edge cases.
