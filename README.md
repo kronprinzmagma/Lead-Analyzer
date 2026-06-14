@@ -68,6 +68,46 @@ Arbeit. Mit `--no-cache` wird der Cache komplett umgangen. Die Parallelität ste
 `.env`, `output/` und `cache/` sind gitignored und werden **nie committet**. Das Tool arbeitet
 lokal; es werden keine Personen-/Firmendaten veröffentlicht.
 
+## Wie die beiden Scores funktionieren
+
+### Website-Bedarf (1–5)
+
+Höher = grösserer Bedarf = besserer Lead. Der Score wird aus **sechs messbaren Dimensionen**
+abgeleitet (keine Bauchnote):
+
+1. **Existenz & Substanz** — erreichbar (HTTP 200)? geparkt/Platzhalter? nur Social-Media?
+2. **Technische Basis** — HTTPS/gültiges SSL, eigene Domain vs. Gratis-Subdomain.
+3. **Mobile & Performance** — Viewport-Meta (responsive) + optional Core Web Vitals via PageSpeed.
+4. **Auffindbarkeit (SEO)** — Title/Meta-Description, Canonical, robots/sitemap, Indexierbarkeit.
+5. **KI-/Answer-Engine-Bereitschaft** — strukturiertes Markup (Schema.org/JSON-LD), Open-Graph-Tags.
+6. **Inhalt, Aktualität & Conversion** — Kontaktformular/`tel:`/`mailto:`, Impressum, Aktualitäts-Proxy.
+
+**Keine erreichbare Website → Score 5** (überschreibt immer). Die vollständige Rubrik mit allen
+Mess-Signalen und der Aggregation steht in [`docs/scoring_website_bedarf.md`](docs/scoring_website_bedarf.md).
+
+### Zahlungskräftigkeit (1–5)
+
+Höher = mehr Kaufkraft = lohnenderer Verkauf. Der Wert ist eine **dokumentierte Schätzung
+(estimate)** aus öffentlichen Signalen — keine geprüften Finanzdaten:
+
+- **Rechtsform** aus dem Firmennamen (AG / GmbH / Einzelfirma).
+- **Branchen-Kaufkraft-Tier** (welche Branche).
+- **Website-Grössensignale** (mehrere Standorte / Team / Karriere-Seite).
+
+Die Schätzung ist als solche gekennzeichnet.
+
+### Begründung-Spalte
+
+Die `Begründung`-Spalte (standardmässig an, mit `--no-reason` weglassbar) zeigt pro Kunde,
+**welche Signale den jeweiligen Score getrieben haben** — so ist jeder Score nachvollziehbar.
+
+## Beispiel-Lauf (`data/sample_input.xlsx`)
+
+42 Zeilen in ~3.7 s, vollständig offline (PageSpeed aus). Verteilung der Scores im Sample:
+
+- **Website-Bedarf:** `1: 3 · 2: 12 · 3: 15 · 4: 10 · 5: 2`
+- **Zahlungskräftigkeit:** `1: 3 · 2: 9 · 3: 10 · 4: 7 · 5: 13`
+
 ## Tests
 
 ```bash
