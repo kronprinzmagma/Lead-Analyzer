@@ -8,7 +8,8 @@ der explizite Aufruf hier dokumentiert die Invariante pro Test.
 
 from __future__ import annotations
 
-from lead_analyzer import cache
+from lead_analyzer import cache, fetch
+from lead_analyzer.config import Config
 from lead_analyzer.models import FetchResult
 
 from conftest import make_fetch_result
@@ -93,3 +94,57 @@ def test_atomic_no_tempfile_left(tmp_path) -> None:
     files = list(tmp_path.iterdir())
     assert files == [tmp_path / f"{key}.json"]
     assert not any(f.suffix == ".tmp" for f in files)
+
+
+# --------------------------------------------------------------------------- #
+# Cache-aside in fetch.fetch: Hit ohne Netz, Miss schreibt, --no-cache umgeht  #
+# --------------------------------------------------------------------------- #
+
+def test_fetch_hit_skips_network(tmp_path) -> None:
+    """Ein vorgefüllter Cache-Eintrag -> fetch() liefert ihn OHNE Netz.
+
+    Die autouse-Netz-Sperre bleibt aktiv und würde bei jedem echten Request
+    feuern; ein grüner Test beweist also: kein Netzkontakt.
+    """
+    cache.set_cache_dir(tmp_path)
+    cands = ["https://hit.ch", "http://hit.ch"]
+    fr = make_fetch_result(url="https://hit.ch", status=200)
+    cache.put(cache.key_for(cands), fr.to_dict())
+    result = fetch.fetch(cands, Config(input="x", output="y", use_cache=True))
+    assert result == fr
+
+
+def test_fetch_miss_then_put(tmp_path, monkeypatch) -> None:
+    """Miss: _fetch_network einmal aufrufen + cachen; zweiter Aufruf = Hit (0 Calls)."""
+    cache.set_cache_dir(tmp_path)
+    cands = ["https://miss.ch"]
+    calls: list[str] = []
+
+    def fake_network(c, cfg):
+        calls.append(c[0])
+        return make_fetch_result(url=c[0], status=200)
+
+    monkeypatch.setattr(fetch, "_fetch_network", fake_network)
+    cfg = Config(input="x", output="y", use_cache=True)
+    fetch.fetch(cands, cfg)
+    assert (tmp_path / f"{cache.key_for(cands)}.json").exists()
+    fetch.fetch(cands, cfg)                       # zweiter Lauf -> Cache-Hit
+    assert len(calls) == 1                        # _fetch_network nur EINMAL
+
+
+def test_no_cache_flag_bypasses(tmp_path, monkeypatch) -> None:
+    """use_cache=False: jeder Aufruf trifft das Netz, nichts wird geschrieben."""
+    cache.set_cache_dir(tmp_path)
+    cands = ["https://nocache.ch"]
+    calls: list[str] = []
+
+    def fake_network(c, cfg):
+        calls.append(c[0])
+        return make_fetch_result(url=c[0], status=200)
+
+    monkeypatch.setattr(fetch, "_fetch_network", fake_network)
+    cfg = Config(input="x", output="y", use_cache=False)
+    fetch.fetch(cands, cfg)
+    fetch.fetch(cands, cfg)
+    assert len(calls) == 2                        # kein Hit -> beide Male Netz
+    assert list(tmp_path.iterdir()) == []         # nichts geschrieben

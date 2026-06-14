@@ -14,6 +14,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 import requests
 
+from . import cache
 from .models import FetchResult
 
 
@@ -110,7 +111,28 @@ def _read_capped(resp) -> str:
 
 
 def fetch(candidates: list[str], config) -> FetchResult:
-    """Probt die Kandidaten-Varianten und liefert ein `FetchResult`. Wirft NIE.
+    """Cache-aside-Hülle um _fetch_network (PERF-01 / AC7). Wirft NIE.
+
+    Bei use_cache: Key aus den Kandidaten -> Cache lesen; Hit -> gecachtes
+    FetchResult OHNE Netz/Session zurückgeben; Miss -> _fetch_network und das
+    rohe Ergebnis atomar cachen. --no-cache (use_cache=False) umgeht Lesen UND
+    Schreiben komplett. Gecacht wird das ROHE FetchResult, nicht die Scores.
+    """
+    use_cache = getattr(config, "use_cache", True)
+    key = None
+    if use_cache and candidates:
+        key = cache.key_for(candidates)
+        cached = cache.get(key)
+        if cached is not None:
+            return FetchResult.from_dict(cached)   # KEIN Netz, KEINE Session
+    fr = _fetch_network(candidates, config)
+    if use_cache and key is not None:
+        cache.put(key, fr.to_dict())               # atomar, inkrementell (AC7)
+    return fr
+
+
+def _fetch_network(candidates: list[str], config) -> FetchResult:
+    """Reiner HTTP-Pfad: probt die Kandidaten-Varianten am Netz. Wirft NIE.
 
     Knöpfe (ROB-02): hartes `timeout=(connect, read)` aus der Config (requests hat
     KEINEN Default-Timeout — Pitfall 2), Browser-UA + de-CH-Header, redirect-Cap,
@@ -119,6 +141,9 @@ def fetch(candidates: list[str], config) -> FetchResult:
     der Body bleibt lesbar, `ssl_ok=False` (Phase 3 wertet das). Jede requests-
     Exception wird auf eine Notiz gemappt; eine echte HTTP-Antwort (auch 4xx/5xx)
     beendet das Probing sofort (eine Antwort = Host existiert).
+
+    Phase 5: aus fetch() extrahiert (Körper unverändert); die cache-aside-Hülle
+    in fetch() ruft diese Funktion nur bei einem Cache-Miss.
     """
     session = requests.Session()
     session.max_redirects = 10               # Redirect-Schleifen begrenzen (T-02-05)
