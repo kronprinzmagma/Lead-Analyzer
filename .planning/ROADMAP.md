@@ -44,7 +44,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. The two sample edge cases (empty URL "Kiosk", broken `htp://naehatelier-sutter`) plus timeouts and unreachable sites never crash the run and each gets a sensible score (no reachable site -> Bedarf 5) with a note (AC4).
   3. HTTP fetch uses hard timeouts, a browser-like User-Agent + de-CH headers, redirect/size limits, and captures SSL errors as a signal rather than crashing (AC4).
   4. One failing row or stage is isolated by a per-row exception boundary; the overall run continues to completion (AC1, AC4).
-**Plans**: TBD
+**Plans**: 2 plans
+- [ ] 02-01-PLAN.md — Test scaffold (offline network block) + FetchResult + pure normalize() + existence verdict
+- [ ] 02-02-PLAN.md — Never-crashing fetch() seam + analyze_row wiring (dead->5) + offline sample integration
 
 ### Phase 3: Real Website-Bedarf Score (Dims 2,4,5,6 + Aggregation)
 **Goal**: The Website-Bedarf score is derived deterministically from all six dimensions with a per-customer traceable reason.
@@ -111,7 +113,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. E2E Skeleton + Excel I/O | 0/TBD | Not started | - |
-| 2. Fetch + Existence + Robustness | 0/TBD | Not started | - |
+| 2. Fetch + Existence + Robustness | 0/2 | Not started | - |
 | 3. Real Website-Bedarf Score | 0/TBD | Not started | - |
 | 4. Zahlungskräftigkeit Estimator | 0/TBD | Not started | - |
 | 5. Cache + Concurrency | 0/TBD | Not started | - |
