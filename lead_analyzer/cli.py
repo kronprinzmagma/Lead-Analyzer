@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from .config import Config
+from .config import Config, load_dotenv
 from .pipeline import run
 from .table_io import InputError
 
@@ -39,10 +39,18 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-cache", action="store_true",
         help="Cache komplett umgehen (kein Lesen, kein Schreiben)",
     )
+    p.add_argument(
+        "--no-pagespeed", action="store_true",
+        help="PageSpeed-Anreicherung von Dim 3 abschalten (erzwingt Heuristik)",
+    )
     return p
 
 
 def main(argv: list[str] | None = None) -> int:
+    # .env ZUERST laden — VOR dem Config-Bau, damit from_config (Plan 04) den
+    # PAGESPEED_API_KEY aus os.environ sieht. Einziger Aufrufort; setdefault ->
+    # ein real exportierter Key gewinnt immer über die Datei (T-06-03).
+    load_dotenv()
     args = build_parser().parse_args(argv)
     config = Config(
         input=args.input,
@@ -53,6 +61,8 @@ def main(argv: list[str] | None = None) -> int:
         # Default workers=8 entspricht dem Config-Default (Politeness-Annahme A1).
         workers=args.workers,
         use_cache=not args.no_cache,
+        # --no-pagespeed erzwingt PSI aus, unabhängig von Key-Präsenz (Degradations-Gate).
+        use_pagespeed=not args.no_pagespeed,
     )
     try:
         summary = run(config)
