@@ -12,7 +12,7 @@ import pytest
 
 from lead_analyzer.analyzers import existence
 from lead_analyzer.models import DimensionVerdict
-from .conftest import make_fetch_result
+from conftest import make_fetch_result
 
 
 def _body(words: int) -> str:
