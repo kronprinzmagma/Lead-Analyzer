@@ -29,9 +29,9 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 - [ ] **ZK-03**: Score-Richtung korrekt: höher = mehr Kaufkraft. *(AC3)*
 
 ### ROB — Robustheit
-- [ ] **ROB-01**: Leere URL, ungültige/kaputte URL (`htp://…`), nicht erreichbare Seite, Timeout, geparkte Domain, Social-only führen **nie** zum Absturz; jede solche Zeile erhält einen sinnvollen Score (bei «keine Website» = Bedarf 5) + Vermerk. *(AC4)*
-- [ ] **ROB-02**: HTTP-Abruf hat harte Timeouts, browser-ähnlichen User-Agent, Redirect-/Grössen-Limit, toleranten Encoding-Fallback; SSL-Fehler wird zum Dim-2-Signal, nicht zum Crash. *(AC4)*
-- [ ] **ROB-03**: Eine fehlerhafte Zeile/Stage isoliert (per-row Exception-Boundary); der Gesamtlauf läuft weiter. *(AC1, AC4)*
+- [x] **ROB-01**: Leere URL, ungültige/kaputte URL (`htp://…`), nicht erreichbare Seite, Timeout, geparkte Domain, Social-only führen **nie** zum Absturz; jede solche Zeile erhält einen sinnvollen Score (bei «keine Website» = Bedarf 5) + Vermerk. *(AC4)*
+- [x] **ROB-02**: HTTP-Abruf hat harte Timeouts, browser-ähnlichen User-Agent, Redirect-/Grössen-Limit, toleranten Encoding-Fallback; SSL-Fehler wird zum Dim-2-Signal, nicht zum Crash. *(AC4)*
+- [x] **ROB-03**: Eine fehlerhafte Zeile/Stage isoliert (per-row Exception-Boundary); der Gesamtlauf läuft weiter. *(AC1, AC4)*
 
 ### NACH — Nachvollziehbarkeit
 - [ ] **NACH-01**: Zu jedem Kunden ist erkennbar, welche Signale/Dimensionen den Bedarf-Score und welche Annahmen den Zahlungskräftigkeit-Score getrieben haben — über eine Begründungsspalte im Output und/oder ein Lauf-Log. *(AC6, AC5, AC11)*
@@ -69,9 +69,9 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 | IO-06 | Phase 1 | Done |
 | IO-07 | Phase 1 | Done |
 | BED-01 | Phase 2 | Complete |
-| ROB-01 | Phase 2 | Pending |
-| ROB-02 | Phase 2 | Pending |
-| ROB-03 | Phase 2 | Pending |
+| ROB-01 | Phase 2 | Complete |
+| ROB-02 | Phase 2 | Complete |
+| ROB-03 | Phase 2 | Complete |
 | BED-02 | Phase 3 | Pending |
 | BED-04 | Phase 3 | Pending |
 | BED-05 | Phase 3 | Pending |
