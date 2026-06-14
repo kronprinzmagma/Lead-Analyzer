@@ -1,3 +1,7 @@
+# CLAUDE.md §6 (Privacy/Scope): Dieses Tool arbeitet lokal. Niemals committen:
+#   - .env            -> enthält API-Keys (nur .env.example mit leeren Platzhaltern ist erlaubt)
+#   - output/, outputs/, cache/, .cache/ -> enthalten gescorte Firmen-/Personendaten
+# Diese Regeln nicht entfernen.
 .env
 __pycache__/
 *.pyc
