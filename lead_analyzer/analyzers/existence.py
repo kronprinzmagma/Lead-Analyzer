@@ -76,7 +76,11 @@ def analyze(fr, soup=None) -> DimensionVerdict:
     """
     # 1) Keine Antwort von irgendeiner Variante (kein Status) -> tot.
     if fr.status is None and not fr.html:
-        return DimensionVerdict(1, "severe", f"nicht erreichbar ({fr.error or 'kein Body'})", "html", dead=True)
+        detail = fr.error or "kein Body"
+        # fr.error kann selbst schon "nicht erreichbar" sein (fetch.py) — dann
+        # nicht doppeln, sonst Klartext-Detail in Klammern anhängen.
+        reason = "nicht erreichbar" if detail == "nicht erreichbar" else f"nicht erreichbar ({detail})"
+        return DimensionVerdict(1, "severe", reason, "html", dead=True)
 
     # 2) WAF-Block: geantwortet, aber nicht bewertbar -> NICHT Bedarf 5.
     if fr.status in (403, 406, 429):
