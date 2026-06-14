@@ -1,8 +1,8 @@
-# MyWEBSITE Lead-Analyzer
+# Lead-Analyzer
 
 ## What This Is
 
-Ein lauffähiges CLI-Tool für Nils (Product Owner) und das Sales-Team von localsearch. Eingabe ist eine Excel-/CSV-Kundenliste mit einer Website-URL pro Kunde; Ausgabe ist dieselbe Tabelle plus zwei numerische Bewertungs-Spalten pro Kunde: **Website-Bedarf (1–5)** und **Zahlungskräftigkeit (1–5)**. Damit sieht Sales auf einen Blick, welche Kunden eine neue Website (Produkt «MyWEBSITE») dringend brauchen UND die Kaufkraft mitbringen.
+Ein lauffähiges CLI-Tool für Nils (Product Owner) und das Sales-/Vertriebsteam. Eingabe ist eine Excel-/CSV-Kundenliste mit einer Website-URL pro Kunde; Ausgabe ist dieselbe Tabelle plus zwei numerische Bewertungs-Spalten pro Kunde: **Website-Bedarf (1–5)** und **Zahlungskräftigkeit (1–5)**. Damit sieht Sales auf einen Blick, welche Kunden eine neue, moderne Website dringend brauchen UND die Kaufkraft mitbringen.
 
 ## Core Value
 
@@ -42,7 +42,7 @@ Aus einer rohen Kundenliste pro Zeile zwei nachvollziehbare, sortierbare Scores 
 - **Spezifikation:** `CLAUDE.md` (bindende AC1–AC11) und `docs/scoring_website_bedarf.md` (6-Dimensionen-Rubrik). Diese sind die Quelle der Wahrheit, nicht dieses Dokument.
 - **Beispieldaten:** `data/sample_input.xlsx` — 42 Schweizer KMU (Maler, Schreiner, Garage, Gartenbau, Bäckerei, Zahnarzt, Treuhand, Coiffeur, Velo, Immobilien, Sanitär, Floristik …). Spalten: Kundennummer, Kundenname, Branche, Ort, Website. Zwei Edge-Cases am Ende: Zeile mit leerer URL (Kiosk), Zeile mit kaputter URL `htp://naehatelier-sutter` (Nähatelier).
 - **Domäne:** Schweizer KMU. Rechtsform aus Firmenname ableitbar (AG/GmbH/Einzelfirma); öffentliche Quellen u.a. Zefix (Handelsregister), Website selbst (Standorte/Team/Impressum).
-- **MyWEBSITE-Versprechen** (eigene Domain, SSL, Responsive, SEO, KI-Sichtbarkeit, aktuelle Inhalte) = genau die Lücken, die der Bedarf-Score misst.
+- **Versprechen eines modernen Website-Produkts** (eigene Domain, SSL, Responsive, SEO, KI-Sichtbarkeit, aktuelle Inhalte) = genau die Lücken, die der Bedarf-Score misst.
 
 ## Constraints
 

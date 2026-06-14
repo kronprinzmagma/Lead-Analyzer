@@ -1,4 +1,4 @@
-# CLAUDE.md — MyWEBSITE-Lead-Analyzer
+# CLAUDE.md — Lead-Analyzer
 
 Diese Datei ist die verbindliche Spezifikation für Claude Code. **Bindend sind die Akzeptanzkriterien (Abschnitt 4).** Den Lösungsweg (Sprache, Libraries, Architektur, ob LLM oder Heuristik) wählst du selbst — Hauptsache, die Akzeptanzkriterien sind erfüllt.
 
@@ -6,7 +6,7 @@ Diese Datei ist die verbindliche Spezifikation für Claude Code. **Bindend sind 
 
 Ich (Nils, Product Owner) lade eine Excel-/CSV-Tabelle mit Kunden hoch, in der u.a. eine **Website-URL** steht. Das Tool gibt dieselbe Tabelle zurück, ergänzt um **zwei Bewertungs-Spalten pro Kunde**:
 
-1. **Website-Bedarf (1–5)** — wie dringend dieser Kunde eine moderne, professionelle Website (Produkt «MyWEBSITE») braucht.
+1. **Website-Bedarf (1–5)** — wie dringend dieser Kunde eine moderne, professionelle Website braucht.
 2. **Zahlungskräftigkeit (1–5)** — wie kaufkräftig / wirtschaftlich stark der Kunde ist (lohnt sich der Verkauf).
 
 Hintergrund: Sales soll aus einer Kundenliste schnell sehen, **wer eine neue Website nötig hat UND die nötige Kaufkraft mitbringt**. Mehr braucht der Output nicht.
@@ -31,9 +31,9 @@ Hintergrund: Sales soll aus einer Kundenliste schnell sehen, **wer eine neue Web
 
 ### Score-Definitionen (Richtung eindeutig)
 
-**Website-Bedarf (1–5)** — höher = grösserer Bedarf = besserer Lead. **Wird aus sechs messbaren Dimensionen abgeleitet, nicht als Bauchnote.** Vollständige Rubrik (Dimensionen, Mess-Signale, MyWEBSITE-Bezug, Aggregation, Edge-Cases): siehe **[`docs/scoring_website_bedarf.md`](docs/scoring_website_bedarf.md)**.
+**Website-Bedarf (1–5)** — höher = grösserer Bedarf = besserer Lead. **Wird aus sechs messbaren Dimensionen abgeleitet, nicht als Bauchnote.** Vollständige Rubrik (Dimensionen, Mess-Signale, Produkt-Bezug, Aggregation, Edge-Cases): siehe **[`docs/scoring_website_bedarf.md`](docs/scoring_website_bedarf.md)**.
 
-Die sechs Dimensionen (jede aus einem MyWEBSITE-Versprechen = Kundenlücke abgeleitet):
+Die sechs Dimensionen (jede aus einem Versprechen eines modernen Website-Produkts = Kundenlücke abgeleitet):
 
 1. **Existenz & Substanz** — erreichbar? geparkt? nur Social-Media?
 2. **Technische Basis** — HTTPS/SSL, eigene Domain vs. Gratis-Subdomain.

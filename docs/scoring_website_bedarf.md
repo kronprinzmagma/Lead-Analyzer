@@ -1,10 +1,10 @@
 # Scoring-Referenz: Website-Bedarf (Score 1, 1–5)
 
-Der Score «Website-Bedarf» misst, **wie dringend ein Kunde eine moderne Website (MyWEBSITE) braucht**. Er wird aus sechs messbaren Dimensionen abgeleitet — nicht als Bauchnote. Jede Dimension ist aus localsearchs eigenen MyWEBSITE-Versprechen abgeleitet: Was MyWEBSITE verspricht, ist genau das, was einer schwachen Website fehlt.
+Der Score «Website-Bedarf» misst, **wie dringend ein Kunde eine moderne, professionelle Website braucht**. Er wird aus sechs messbaren Dimensionen abgeleitet — nicht als Bauchnote. Jede Dimension ist aus den Versprechen eines modernen Website-Produkts abgeleitet: Was ein modernes Website-Produkt verspricht, ist genau das, was einer schwachen Website fehlt.
 
 ## Die sechs Dimensionen
 
-| # | Dimension | Was gemessen wird (Lücke = Bedarf) | MyWEBSITE-Bezug | Signal / Werkzeug |
+| # | Dimension | Was gemessen wird (Lücke = Bedarf) | Produkt-Bezug | Signal / Werkzeug |
 |---|---|---|---|---|
 | 1 | **Existenz & Substanz** | Erreichbar (HTTP 200)? Geparkt/Platzhalter? Nur Social-Media statt Website? Keine Website = maximaler Bedarf | Profi-Auftritt überhaupt | HTTP-Status, HTML-Inhalt, Redirect-Ziel |
 | 2 | **Technische Basis** | HTTPS/gültiges SSL? Eigene Domain oder Gratis-Subdomain (wixsite, jimdosite, …)? | «Eigene Domain, SSL-zertifiziert» | SSL-Cert, HTTP-Header, Domain-Muster |

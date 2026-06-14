@@ -46,7 +46,7 @@ Beide Sonderfälle landen korrekt bei **Bedarf 5** — und vor allem: **kein Abs
 - **URL:** _(leer)_ · **Bedarf 5**, **Zahlungskräftigkeit 1**
 - Begründung-Spalte: `keine Website | Zahl (Schätzung): Branchen-Tier (Annahme): Detailhandel → tief`
 - Greift die Regel **«Keine erreichbare Website überschreibt immer auf 5»** aus
-  `docs/scoring_website_bedarf.md`. Ein Kunde ohne Website hat den maximalen MyWEBSITE-Bedarf.
+  `docs/scoring_website_bedarf.md`. Ein Kunde ohne Website hat den maximalen Website-Bedarf.
 - Die Zahlungskräftigkeit 1 ist sachgerecht: ein Detailhandels-Kiosk ist eine Kleinstfirma
   mit geringer Kaufkraft. Score und Bedarf passen — aber ein hoher Bedarf bei tiefer Kaufkraft
   macht den Kiosk **nicht** zum Top-Lead.

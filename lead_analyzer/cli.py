@@ -13,7 +13,7 @@ from .table_io import InputError
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="lead-analyzer",
-        description="MyWEBSITE Lead-Analyzer: Excel/CSV rein, dieselbe Tabelle + "
+        description="Lead-Analyzer: Excel/CSV rein, dieselbe Tabelle + "
         "Website-Bedarf (1-5) und Zahlungskräftigkeit (1-5) raus.",
     )
     p.add_argument("input", help="Eingabedatei (.xlsx oder .csv) mit einer URL-Spalte")

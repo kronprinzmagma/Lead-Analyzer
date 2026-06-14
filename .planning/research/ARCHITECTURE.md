@@ -74,7 +74,7 @@ The key architectural force is **graceful degradation + resumability**: every la
 ## Recommended Project Structure
 
 ```
-mywebsite_lead_analyzer/
+lead_analyzer/
 ├── __init__.py
 ├── cli.py                  # argparse, entry point, builds Config, calls run()
 ├── config.py              # Config dataclass + .env loading (graceful, keys optional)
@@ -99,7 +99,7 @@ mywebsite_lead_analyzer/
 │   └── llm.py             # optional LLM client (no-op without key)
 └── logging_setup.py       # run-log file + console handler
 
-run.py  (or `pyproject` console_scripts: lead-analyzer = mywebsite_lead_analyzer.cli:main)
+run.py  (or `pyproject` console_scripts: lead-analyzer = lead_analyzer.cli:main)
 cache/                     # gitignored JSON cache (created at runtime)
 output/                    # gitignored outputs
 data/sample_input.xlsx

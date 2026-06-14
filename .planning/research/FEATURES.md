@@ -1,6 +1,6 @@
 # Feature Research
 
-**Domain:** Local CLI scoring engine for Swiss SME websites (lead qualification for "MyWEBSITE")
+**Domain:** Local CLI scoring engine for Swiss SME websites (lead qualification for a modern website product)
 **Researched:** 2026-06-14
 **Confidence:** HIGH (signals 1–4, 5, 6 are deterministic HTTP/HTML facts; MEDIUM on PageSpeed thresholds and Zahlungskräftigkeit tiers, which are estimates by design per AC5)
 
@@ -40,7 +40,7 @@ Each dimension produces a **per-dimension verdict**: `ok` / `Lücke` / `schwere 
 | HTTPS reachable | Did the working URL use `https`? | http-only or https failed → `Lücke` (or `schwere Lücke` if no https at all) | LOW |
 | Valid TLS certificate | `requests.get(url)` succeeds without `SSLError`. For detail: `ssl.create_default_context().wrap_socket(...)` to host:443, read `getpeercert()` → check `notAfter` not expired and hostname matches. Expired/self-signed/mismatch raises → catch | invalid/expired cert → `schwere Lücke` | MEDIUM |
 | Redirect http→https | Request `http://` and check final scheme is `https` | no auto-upgrade → minor flag (folds into the HTTPS verdict) | LOW |
-| Free / builder subdomain (not own domain) | Final registrable domain ends in one of: `wixsite.com`, `wix.com` (editorx), `jimdosite.com`, `jimdo.com`, `business.site` (Google), `wordpress.com`, `weebly.com`, `webnode.page` / `webnode.com`, `squarespace.com`, `square.site`, `webflow.io`, `github.io`, `myshopify.com`, `wordpress.com`, `strikingly.com`, `sitew.com`, `webador.ch/.com`, `1g1.ms` / `ionos` builder, `companysites.ch`. Compare via `tldextract` registrable domain | on free subdomain → `schwere Lücke` (strong MyWEBSITE pitch: "eigene Domain") | LOW |
+| Free / builder subdomain (not own domain) | Final registrable domain ends in one of: `wixsite.com`, `wix.com` (editorx), `jimdosite.com`, `jimdo.com`, `business.site` (Google), `wordpress.com`, `weebly.com`, `webnode.page` / `webnode.com`, `squarespace.com`, `square.site`, `webflow.io`, `github.io`, `myshopify.com`, `wordpress.com`, `strikingly.com`, `sitew.com`, `webador.ch/.com`, `1g1.ms` / `ionos` builder, `companysites.ch`. Compare via `tldextract` registrable domain | on free subdomain → `schwere Lücke` (strong website-product pitch: "eigene Domain") | LOW |
 | Own domain confirmation | Registrable domain not in the free list AND not a social host | reinforces `ok` | LOW |
 
 #### Dimension 3 — Mobile & Performance  (PageSpeed Insights API)
@@ -55,7 +55,7 @@ Each dimension produces a **per-dimension verdict**: `ok` / `Lücke` / `schwere 
 | TBT (lab, interactivity proxy) | `lighthouseResult.audits["total-blocking-time"].numericValue` (ms) | `<=200` ok · `200–600` Lücke · `>600` schwere Lücke | LOW |
 | Field/CrUX data (BONUS) | `loadingExperience.metrics.{LARGEST_CONTENTFUL_PAINT_MS, CUMULATIVE_LAYOUT_SHIFT_SCORE, INTERACTION_TO_NEXT_PAINT}.category` = `FAST`/`AVERAGE`/`SLOW`. **Often empty for low-traffic SME sites** and Google is phasing CrUX out of PSI — use only as a bonus when present, never as the primary signal | present+SLOW → push toward schwere Lücke | LOW |
 
-> **Verified:** category scores live at `lighthouseResult.categories.<id>.score`; metric values at `lighthouseResult.audits.<id>.numericValue`; CrUX at `loadingExperience.metrics.<METRIC>.category`. Source: Google PSI v5 docs. Use mobile strategy (SME customers' visitors are mostly mobile, and "Responsive" is a core MyWEBSITE promise).
+> **Verified:** category scores live at `lighthouseResult.categories.<id>.score`; metric values at `lighthouseResult.audits.<id>.numericValue`; CrUX at `loadingExperience.metrics.<METRIC>.category`. Source: Google PSI v5 docs. Use mobile strategy (SME customers' visitors are mostly mobile, and "Responsive" is a core website-product promise).
 
 **Dim 3 fallback without PSI key/network:** use viewport-meta only → present = `ok`-ish but tentative, absent = `Lücke`; mark note "Performance heuristisch (kein PSI)". This keeps AC4/AC11 satisfied (dim 3 still measured at the HTML level).
 

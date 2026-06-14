@@ -1,4 +1,4 @@
-# MyWEBSITE Lead-Analyzer
+# Lead-Analyzer
 
 Lädt eine **Excel-/CSV-Tabelle mit Kunden** (eine Spalte enthält die Website-URL) und gibt
 **dieselbe Tabelle** zurück — ergänzt um zwei ganzzahlige Score-Spalten `Website-Bedarf (1-5)`

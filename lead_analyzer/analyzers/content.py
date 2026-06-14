@@ -1,7 +1,7 @@
 """Dimension 6 — Inhalt, Aktualität & Conversion (rein, offline).
 
 `analyze(fr, soup)` misst, ob eine Seite zum Geschäft führt (Conversion) und ob
-sie gepflegt ist (Aktualität) — die MyWEBSITE-Versprechen «Kontakt/Leads» und
+sie gepflegt ist (Aktualität) — die Website-Produkt-Versprechen «Kontakt/Leads» und
 «immer aktuell». Gemessen aus dem bereits geparsten `soup`; der Copyright-Scan
 liest zusätzlich den rohen `fr.html`. Kein Netz, vollständig offline testbar.
 

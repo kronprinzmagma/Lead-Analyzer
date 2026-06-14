@@ -1,6 +1,6 @@
 # Project Research Summary
 
-**Project:** MyWEBSITE-Lead-Analyzer
+**Project:** Lead-Analyzer
 **Domain:** Local Python CLI batch enricher — Excel/CSV of Swiss SME customers in → same table + two integer 1–5 score columns out, via per-URL live website analysis, optional PageSpeed/LLM/Zefix, with caching, retry/backoff, and graceful degradation
 **Researched:** 2026-06-14
 **Confidence:** HIGH

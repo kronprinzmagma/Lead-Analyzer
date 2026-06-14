@@ -1,4 +1,4 @@
-# MyWEBSITE Lead-Analyzer — Laufzeit-Abhängigkeiten
+# Lead-Analyzer — Laufzeit-Abhängigkeiten
 # Installation:  python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
 openpyxl>=3.1        # Excel-I/O (kein pandas: erhält Spaltentypen unverändert, AC2)
 requests>=2.31       # HTTP-Abruf der Kunden-Websites (ab Phase 2)

@@ -1,4 +1,4 @@
-# REQUIREMENTS — MyWEBSITE Lead-Analyzer
+# REQUIREMENTS — Lead-Analyzer
 
 Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `docs/scoring_website_bedarf.md`. Diese Datei übersetzt sie in testbare, atomare REQ-IDs und verknüpft jede mit ihrem AC. v1 = das, was die Definition of Done (CLAUDE.md §7) verlangt.
 

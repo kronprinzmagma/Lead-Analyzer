@@ -1,6 +1,6 @@
 # Technology Stack
 
-**Project:** MyWEBSITE-Lead-Analyzer
+**Project:** Lead-Analyzer
 **Researched:** 2026-06-14
 **Overall confidence:** HIGH (core stack), MEDIUM (PageSpeed keyless limits, Zefix auth nuance)
 
@@ -80,7 +80,7 @@ Each tier is gated by a capability check (key present? network reachable?) and *
   - `tenacity` is a nicer decorator API but is an **extra dependency**; reserve it only if you want fancy retry policies around the LLM/API calls. Recommendation: skip tenacity, use urllib3 `Retry` for the adapter and a small manual backoff loop for API calls. Keeps deps at zero-new for HTTP.
 - **Concurrency:** `ThreadPoolExecutor(max_workers=8–16)`. Website fetches are independent and I/O-bound. Cap workers to be polite and avoid local resource exhaustion. For the keyless PageSpeed API, run those calls on a **separate, smaller pool / rate-limited queue** (see §4) — don't blast 16 concurrent PSI calls.
 - **Timeouts (critical for AC4 — must not hang on dead sites):** always pass `timeout=(connect, read)`, e.g. `timeout=(5, 10)`. Never call `requests.get` without a timeout (default is infinite → hang on parked/slow sites).
-- **User-Agent:** set a real descriptive UA (e.g. `MyWEBSITE-LeadAnalyzer/1.0 (+contact)`). Some sites block the default `python-requests/x` UA with 403 — which would wrongly look like "unreachable."
+- **User-Agent:** set a real descriptive UA (e.g. `Lead-Analyzer/1.0 (+contact)`). Some sites block the default `python-requests/x` UA with 403 — which would wrongly look like "unreachable."
 - **Redirect handling:** `requests` follows redirects by default. Inspect `resp.history` and `resp.url` for Dim. 1 (redirect to a social-media domain → "Social-only"; redirect to a parking page → "geparkt"). Also normalize `http://` ↔ `https://` and `www.` before declaring "unreachable" (the spec's broken-URL edge case `htp://…` needs scheme repair first).
 - **SSL-cert inspection (Dim. 2):** two layers — (a) does `requests` complete over HTTPS without `SSLError`? (b) for cert details (issuer, expiry, self-signed), open a raw `ssl` socket with `getpeercert()`. To still *fetch* content from sites with broken certs (so you can score them), you may retry with `verify=False` and **record** "invalid SSL" as a Dim. 2 defect — the cert failure is itself signal, not just an error.
 - **Parked-domain / placeholder detection:** heuristic on final HTML — tiny body, known parking strings ("domain for sale", "this domain is parked", default web-host landing markup), or a redirect to a registrar. Drives Dim. 1.

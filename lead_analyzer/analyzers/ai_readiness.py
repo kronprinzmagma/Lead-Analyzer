@@ -1,7 +1,7 @@
 """Dimension 5 — KI-/Answer-Engine-Bereitschaft (rein, offline).
 
 `analyze(soup)` prüft, wie gut eine Seite für Antwort-Maschinen (Google, LLMs,
-Voice/Assistenten) strukturiert ist — das MyWEBSITE-Versprechen «in KI-Antworten
+Voice/Assistenten) strukturiert ist — das Website-Produkt-Versprechen «in KI-Antworten
 auffindbar». Gemessen werden drei strukturierte-Markup-Signale aus dem bereits
 geparsten BeautifulSoup-Objekt; kein Netz, vollständig offline testbar.
 
