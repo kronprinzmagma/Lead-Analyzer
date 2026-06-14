@@ -32,6 +32,31 @@ def test_error_and_no_html_is_dead_severe():
     assert v.reason.startswith("nicht erreichbar")
 
 
+def test_dead_reason_does_not_double_unreachable_phrase():
+    # fetch.py sets fr.error == "nicht erreichbar"; the verdict must not read
+    # the doubled "nicht erreichbar (nicht erreichbar)".
+    fr = make_fetch_result(ok=False, status=None, html=None, final_url=None,
+                           error="nicht erreichbar")
+    v = existence.analyze(fr)
+    assert v.level == "severe"
+    assert v.dead is True
+    assert v.reason == "nicht erreichbar"
+
+
+def test_dead_reason_keeps_distinct_error_detail():
+    fr = make_fetch_result(ok=False, status=None, html=None, final_url=None,
+                           error="timeout")
+    v = existence.analyze(fr)
+    assert v.reason == "nicht erreichbar (timeout)"
+
+
+def test_dead_reason_empty_error_reads_kein_body():
+    fr = make_fetch_result(ok=False, status=None, html=None, final_url=None,
+                           error=None)
+    v = existence.analyze(fr)
+    assert v.reason == "nicht erreichbar (kein Body)"
+
+
 # ---------- WAF-Block: 403/406/429 -> gap, NICHT severe/Bedarf 5 ----------
 
 @pytest.mark.parametrize("status", [403, 406, 429])
