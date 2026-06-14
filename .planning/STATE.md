@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 status: completed
 stopped_at: Completed 02-02-PLAN.md (fetch() seam + Dim-1 analyze_row wiring); 61 tests green.
-last_updated: "2026-06-14T18:03:55.441Z"
+last_updated: "2026-06-14T18:04:58.616Z"
 last_activity: "2026-06-14 — Plan 06-05 wired Dimension 3 end-to-end: analyze_row builds Dim 3 from performance.analyze(fr, soup, ps_result); run() constructs exactly one shared PageSpeedClient via from_config (shared semaphore + budget), gated on use_pagespeed+key; ps_result gated on is_available()+fr.ok+fr.html (T-06-12); per-row boundary + ThreadPoolExecutor intact. Offline default byte-identical to Phase 5 for viewport-present rows (new regression test). BED-03 assertion updates for genuinely viewport-ABSENT fixtures (grep-confirmed); scoring bands untouched. Suite 200 passed; live run over data/sample_input.xlsx (no key -> PSI off) processed 42 rows offline-safe."
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 21
-  completed_plans: 17
-  percent: 81
+  completed_plans: 18
+  percent: 86
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 
 ## Current Position
 
-Phase: 6 of 7 (Optional PageSpeed + Rate Limiting) — COMPLETE (plans 06-01..06-05)
-Plan: Phase 6 complete — Plan 06-05 wired Dim 3 into the pipeline (performance.analyze replaces DIM3_PLACEHOLDER; one shared PSI client per run); 200 tests green + committed
-Status: Phase 6 done. Next: Phase 7.
+Phase: 7 of 7 (Hardening + README + Full Sample Run) — IN PROGRESS
+Plan: 07-02 complete — docs/sample_run_rationale.md (AC10): full 42-row run rationale, both edge cases, Gross-vs-klein contrast. Plans 07-01 + 07-02 done.
+Status: Phase 7 in progress. Next: remaining Phase 7 plans (07-03..07-05).
 Last activity: 2026-06-14 — Plan 06-05 wired Dimension 3 end-to-end: analyze_row builds Dim 3 from performance.analyze(fr, soup, ps_result); run() constructs exactly one shared PageSpeedClient via from_config (shared semaphore + budget), gated on use_pagespeed+key; ps_result gated on is_available()+fr.ok+fr.html (T-06-12); per-row boundary + ThreadPoolExecutor intact. Offline default byte-identical to Phase 5 for viewport-present rows (new regression test). BED-03 assertion updates for genuinely viewport-ABSENT fixtures (grep-confirmed); scoring bands untouched. Suite 200 passed; live run over data/sample_input.xlsx (no key -> PSI off) processed 42 rows offline-safe.
 
-Progress: [████████░░] 81%
+Progress: [█████████░] 86%
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Progress: [████████░░] 81%
 | Phase 03 P04 | 4min | 4 tasks | 5 files |
 | Phase 06 P04 | 9min | 2 tasks | 2 files |
 | Phase 06 P05 | 15 | 2 tasks | 3 files |
+| Phase 07 P02 | 6min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-14T16:06:48.324Z
+Last session: 2026-06-14T18:04:58.610Z
 Stopped at: Completed 02-02-PLAN.md (fetch() seam + Dim-1 analyze_row wiring); 61 tests green.
 Resume file: None
