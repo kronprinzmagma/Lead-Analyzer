@@ -12,7 +12,7 @@ From a raw Excel/CSV customer list to a sorted, scored lead list. We build the s
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: E2E Skeleton + Excel I/O** - Smallest runnable slice: read sample, trivial scores, sorted xlsx out
+- [x] **Phase 1: E2E Skeleton + Excel I/O** - Smallest runnable slice: read sample, trivial scores, sorted xlsx out ✓ (verified, 15 tests green)
 - [ ] **Phase 2: Fetch + Existence (Dim 1) + Robustness** - Non-crashing live fetch; dead/parked/social -> Bedarf 5
 - [ ] **Phase 3: Real Website-Bedarf Score (Dims 2,4,5,6 + Aggregation)** - Deterministic 6-dimension score with traceable reasons
 - [ ] **Phase 4: Zahlungskräftigkeit Estimator** - Second score from legal form + branch tier + site-size signals
