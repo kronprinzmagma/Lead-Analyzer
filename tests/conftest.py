@@ -43,6 +43,24 @@ def _block_network(monkeypatch):
     yield
 
 
+@pytest.fixture(autouse=True)
+def _isolate_cache(tmp_path):
+    """Lenkt JEDEN Cache-Zugriff in ein per-Test tmp_path (W3, Pitfall 4).
+
+    Phase 5 routet alle fetch()-Aufrufe durch den Cache. Diese autouse-Fixture
+    garantiert, dass KEIN Test (neu oder bestehend) jemals ins repo cache/
+    schreibt. Lazy-Import, damit die Collection vor Existenz von cache.py nicht
+    bricht (TDD-RED-Phase) und damit cache-fremde Tests nicht hart koppeln.
+    """
+    try:
+        from lead_analyzer import cache
+    except ImportError:
+        yield
+        return
+    cache.set_cache_dir(tmp_path)
+    yield
+
+
 # --------------------------------------------------------------------------- #
 # Wiederverwendbare Fakes (Modul-Ebene -> auch von Plan 02-02 importierbar)     #
 # --------------------------------------------------------------------------- #
