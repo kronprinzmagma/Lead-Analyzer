@@ -65,7 +65,7 @@ def _legal_form(name: str) -> tuple[int, list[str]]:
 # GROUP B — Branchen-Tier aus der Branche-Spalte                              #
 # --------------------------------------------------------------------------- #
 
-# Transparente Tier-Map; substring-tolerant auf normalisiertem Token (Free-Text).
+# Transparente Tier-Map; ein Tier-Keyword muss IN der Branche-Zelle vorkommen.
 # Struktur so, dass ein künftiger Config-Override (DIFF-03) ein Einzeiler ist.
 _TIER = {
     "zahnarzt": 2, "treuhand": 2, "immobilien": 2, "garage": 2,        # hoch +2
@@ -80,19 +80,24 @@ _TIER_LABEL = {2: "hoch", 1: "mittel", 0: "tief"}
 def _branch_tier(branche: str) -> tuple[int, list[str]]:
     """Group B: Branchen-Tier-Punkte + Notiz aus der Branche-Spalte.
 
-    Leer -> (0, ['Branche unbekannt']). Substring-Treffer (in beide Richtungen)
-    -> (pts, ['Branchen-Tier (Annahme): … → hoch/mittel/tief']). Unbekannte
-    nicht-leere Branche (z.B. 'Raumfahrt') -> (0, ['Branche unbekannt']) — DIESELBE
-    alleinige Notiz wie der leere Fall; NIE ein Tier raten (AC5).
+    Leer -> (0, ['Branche unbekannt']). Treffer NUR vorwärts: ein bekanntes
+    Tier-Keyword muss IN der Zelle vorkommen (`key in b`) — die umgekehrte
+    Richtung würde kurze Müll-Zellen wie 'a' fälschlich auf 'zahnarzt' mappen
+    und damit ein Tier erfinden (Code-Review H1 / AC5). Bei mehreren Treffern
+    (zusammengesetzte Zelle) gewinnt das HÖCHSTE Tier — nicht die Dict-Reihenfolge
+    (Code-Review M1). Unbekannte nicht-leere Branche (z.B. 'Raumfahrt') ->
+    (0, ['Branche unbekannt']) — DIESELBE alleinige Notiz wie der leere Fall;
+    NIE ein Tier raten (AC5).
     """
     b = str(branche or "").strip().lower()
     if not b:
         return 0, ["Branche unbekannt"]
-    for key, pts in _TIER.items():
-        if key in b or b in key:
-            note = f"Branchen-Tier (Annahme): {branche} → {_TIER_LABEL[pts]}"
-            return pts, [note]
-    return 0, ["Branche unbekannt"]
+    matches = [(pts, key) for key, pts in _TIER.items() if key in b]
+    if not matches:
+        return 0, ["Branche unbekannt"]
+    pts, key = max(matches)  # höchstes Tier gewinnt (deterministisch, M1)
+    note = f"Branchen-Tier (Annahme): {branche} → {_TIER_LABEL[pts]}"
+    return pts, [note]
 
 
 # --------------------------------------------------------------------------- #

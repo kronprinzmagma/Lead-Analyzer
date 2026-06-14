@@ -206,3 +206,37 @@ def test_zahl_range():
         est = payment.estimate(rec, None, None, None)
         assert isinstance(est.zahl, int)
         assert 1 <= est.zahl <= 5
+
+
+# --------------------------------------------------------------------------- #
+# Code-Review-Fixes H1 / M1 / L2 — Branchen-Match nur vorwärts, höchstes Tier   #
+# --------------------------------------------------------------------------- #
+
+@pytest.mark.parametrize("b", ["a", "e", "mal", "x", "ga"])
+def test_branch_short_garbage_does_not_fabricate_tier(b):
+    """H1: kurze Müll-Zellen dürfen kein Tier erfinden (kein b-in-key-Rückwärtsmatch)."""
+    pts, notes = payment._branch_tier(b)
+    assert pts == 0
+    assert notes == ["Branche unbekannt"]
+
+
+def test_branch_compound_cell_takes_highest_tier():
+    """M1: zusammengesetzte Zelle -> höchstes Tier, nicht Dict-Reihenfolge."""
+    pts, notes = payment._branch_tier("Velo und Garage")   # velo=0, garage=2
+    assert pts == 2
+    pts2, _ = payment._branch_tier("Garage und Bäckerei")  # garage=2, bäckerei=0
+    assert pts2 == 2
+
+
+def test_branch_forward_substring_still_works():
+    """Vorwärts-Treffer (Keyword in Zelle) bleibt erhalten."""
+    pts, notes = payment._branch_tier("Zahnarztpraxis Dr. Meier")  # 'zahnarzt' in Zelle
+    assert pts == 2
+
+
+def test_legal_form_ag_beats_and_co_precedence():
+    """L2: Name mit AG UND '& Co' -> AG(2) gewinnt (Reihenfolge gepinnt)."""
+    est = payment.estimate(_rec("Meier & Co AG", "Garage"), None, None, None)
+    assert "AG" in est.reason
+    # AG (hoch) + Garage (hoch) -> Top-Zahlungskraft
+    assert est.zahl == 5
