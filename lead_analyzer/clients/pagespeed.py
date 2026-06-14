@@ -130,13 +130,88 @@ class PageSpeedClient:
             cache.put(ck, res.__dict__)  # nur ERFOLG cachen
         return res
 
-    # --- Netz + Parse: in Task 2 gefüllt ----------------------------------- #
+    # --- Netz: gekappte Retries unter Semaphore, Retry-After-bewusst -------- #
 
-    def _request(self, url):  # pragma: no cover - Stub bis Task 2
-        """Stub (Task 1): liefert None. Die echte Netz-Logik kommt in Task 2."""
+    def _request(self, url):
+        """GET PSI v5 mit gekappten Retries + Backoff. Liefert dict | None, wirft NIE.
+
+        Die Semaphore umschliesst NUR den `requests.get` -> nie mehr als N in-flight (AC8).
+        Bei 429/5xx wird (gekappt) zurückgestaffelt, wobei `Retry-After` honoriert wird;
+        der `sleep` ist injiziert (Tests: No-Op). Jeder andere Fehlerpfad -> None.
+        [CITED: 06-RESEARCH.md Pattern 4 + Pitfalls 1/8]
+        """
+        # requests kodiert die Liste als wiederholten Param (?category=performance&category=seo).
+        params = {
+            "url": url,
+            "strategy": "mobile",
+            "category": ["performance", "seo"],
+            "key": self._key,
+        }
+        for attempt in range(_MAX_ATTEMPTS):
+            try:
+                with self._sem:  # Semaphore kappt die gleichzeitige In-flight-Zahl
+                    r = requests.get(ENDPOINT, params=params, timeout=self._timeout)
+            except requests.RequestException:
+                # Timeout/Connection/etc. -> kein Raise, sondern Degradation (Pitfall 1).
+                return None
+
+            status = getattr(r, "status_code", None)
+            if status == 200:
+                try:
+                    return r.json()
+                except ValueError:
+                    # malformed JSON trotz 200 -> behandeln wie "PSI fehlgeschlagen".
+                    return None
+
+            # Retry-fähig UND noch ein Versuch übrig -> Backoff, dann erneut.
+            if status in _RETRYABLE and attempt < _MAX_ATTEMPTS - 1:
+                self._sleep(_backoff_delay(getattr(r, "headers", {}), attempt))
+                continue
+
+            # Jeder andere Status / erschöpfte Retries -> None.
+            return None
         return None
 
 
-def _parse(data):  # pragma: no cover - Stub bis Task 2
-    """Stub (Task 1): liefert None. Die echte Parse-Logik kommt in Task 2."""
-    return None
+def _backoff_delay(headers, attempt: int) -> float:
+    """Backoff-Dauer in Sekunden: Retry-After (falls parsebar) ODER exponentiell, je + Jitter.
+
+    Retry-After hat Vorrang (Server-Wunsch honorieren, AC8); sonst 2**attempt. Der Jitter
+    (`random.uniform`) entzerrt gleichzeitige Retries (Thundering-Herd-Vermeidung).
+    """
+    retry_after = _parse_retry_after(headers.get("Retry-After") if headers else None)
+    base = retry_after if retry_after is not None else float(2 ** attempt)
+    return base + random.uniform(0.0, 0.5)
+
+
+def _parse_retry_after(header) -> "float | None":
+    """`Retry-After`-Header als Sekunden (int) lesen; nicht parsebar -> None.
+
+    PSI sendet die Sekunden-Variante; das HTTP-Date-Format wird hier bewusst nicht
+    unterstützt (dann greift der exponentielle Fallback).
+    """
+    if header is None:
+        return None
+    try:
+        return float(int(str(header).strip()))
+    except (ValueError, TypeError):
+        return None
+
+
+def _parse(data):
+    """Liest perf/lcp/cls/tbt defensiv aus dem Lighthouse-Body. Malformed -> None.
+
+    JEDER Zugriff ist umschlossen: ein fehlender/anderer Key oder ein falscher Typ
+    (KeyError/TypeError/ValueError) -> None ("PSI fehlgeschlagen" -> Viewport-Fallback,
+    Pitfall 8). Nur bei vollständigem, gültigem Body entsteht ein `PsResult(ok=True)`.
+    [CITED: 06-RESEARCH.md Pattern 4 — lighthouseResult parse paths]
+    """
+    try:
+        lr = data["lighthouseResult"]
+        perf = lr["categories"]["performance"]["score"]                  # 0..1
+        lcp = lr["audits"]["largest-contentful-paint"]["numericValue"]   # ms
+        cls = lr["audits"]["cumulative-layout-shift"]["numericValue"]
+        tbt = lr["audits"]["total-blocking-time"]["numericValue"]        # ms
+    except (KeyError, TypeError, ValueError):
+        return None
+    return PsResult(perf_score=perf, lcp_ms=lcp, cls=cls, tbt_ms=tbt, ok=True)
