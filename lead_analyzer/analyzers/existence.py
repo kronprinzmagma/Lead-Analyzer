@@ -67,8 +67,13 @@ SOCIAL_HOSTS = {
 _THIN_WORDS = 300
 
 
-def analyze(fr) -> DimensionVerdict:
-    """Reiner Dimension-1-Befund über ein `FetchResult`."""
+def analyze(fr, soup=None) -> DimensionVerdict:
+    """Reiner Dimension-1-Befund über ein `FetchResult`.
+
+    `soup` ist optional (fetch-once-parse-many): gibt die Pipeline eine bereits
+    geparste BeautifulSoup mit, wird sie wiederverwendet — sonst wird sie hier
+    lazy gebaut. Backward compatible: `analyze(fr)` verhält sich unverändert.
+    """
     # 1) Keine Antwort von irgendeiner Variante (kein Status) -> tot.
     if fr.status is None and not fr.html:
         return DimensionVerdict(1, "severe", f"nicht erreichbar ({fr.error or 'kein Body'})", "html", dead=True)
@@ -91,12 +96,16 @@ def analyze(fr) -> DimensionVerdict:
     text = ""
     title = ""
     if fr.html:
-        soup = BeautifulSoup(fr.html, "html.parser")
-        for tag in soup(["script", "style", "nav", "footer"]):
+        # parse-once: vor-geparste soup wiederverwenden, sonst lazy bauen.
+        # Kopie ziehen, da decompose() die Baumstruktur destruktiv verändert und
+        # die geteilte Pipeline-soup intakt bleiben muss (sie geht an Dim 4/5/6).
+        base = soup if soup is not None else BeautifulSoup(fr.html, "html.parser")
+        work = BeautifulSoup(str(base), "html.parser")
+        for tag in work(["script", "style", "nav", "footer"]):
             tag.decompose()
         # get_text() statt .string: greift auch bei verschachteltem Title-Markup.
-        title = soup.title.get_text(" ", strip=True) if soup.title else ""
-        text = soup.get_text(" ", strip=True)
+        title = work.title.get_text(" ", strip=True) if work.title else ""
+        text = work.get_text(" ", strip=True)
     # Parking-/Platzhalter-Marker stehen praktisch immer ganz oben; 1024 Zeichen
     # Body reichen und halten den Substring-Scan billig (bewusste Kappung).
     low = (title + " " + text[:1024]).lower()
