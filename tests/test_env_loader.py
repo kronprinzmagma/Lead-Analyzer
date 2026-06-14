@@ -73,3 +73,27 @@ def test_line_without_equals_is_ignored(tmp_path, monkeypatch):
     load_dotenv(str(env))
 
     assert os.environ["GUT"] == "ja"
+
+
+# ---------- Code-Review M1/M2: export-Präfix + BOM ----------
+
+def test_export_prefix_stripped(tmp_path, monkeypatch):
+    """M1: 'export KEY=val' -> Key ist 'KEY', nicht 'export KEY'."""
+    from lead_analyzer.config import load_dotenv
+    env = tmp_path / ".env"
+    env.write_text("export PAGESPEED_API_KEY=abc123\n", encoding="utf-8")
+    monkeypatch.delenv("PAGESPEED_API_KEY", raising=False)
+    load_dotenv(str(env))
+    import os
+    assert os.environ.get("PAGESPEED_API_KEY") == "abc123"
+
+
+def test_bom_first_key_not_corrupted(tmp_path, monkeypatch):
+    """M2: BOM am Dateianfang verfälscht den ersten Key nicht."""
+    from lead_analyzer.config import load_dotenv
+    env = tmp_path / ".env"
+    env.write_text("FOO=bar\n", encoding="utf-8-sig")  # schreibt BOM voran
+    monkeypatch.delenv("FOO", raising=False)
+    load_dotenv(str(env))
+    import os
+    assert os.environ.get("FOO") == "bar"

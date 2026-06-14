@@ -29,7 +29,9 @@ def load_dotenv(path: str = ".env") -> None:
     if not p.exists():
         return None
     try:
-        lines = p.read_text(encoding="utf-8").splitlines()
+        # utf-8-sig schluckt ein evtl. BOM (Windows-Editoren), sonst würde der
+        # erste Key zu "﻿KEY" und der PSI-Key still nicht erkannt (Review M2).
+        lines = p.read_text(encoding="utf-8-sig").splitlines()
     except OSError:
         return None
     for line in lines:
@@ -38,6 +40,10 @@ def load_dotenv(path: str = ".env") -> None:
             continue
         key, _, val = line.partition("=")
         key = key.strip()
+        # 'export KEY=val' ist eine gängige .env-Konvention (shell-kompatibel) —
+        # das Präfix abschneiden, sonst wird der Key "export KEY" (Review M1).
+        if key.startswith(("export ", "export\t")):
+            key = key[len("export"):].strip()
         val = val.strip().strip('"').strip("'")
         if key:
             os.environ.setdefault(key, val)   # bestehende Umgebungs-Var NIE überschreiben
