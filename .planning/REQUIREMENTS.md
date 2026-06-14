@@ -5,13 +5,13 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 ## v1 Requirements
 
 ### IO — Ein-/Ausgabe & Bedienung
-- [ ] **IO-01**: Nutzer kann eine `.xlsx`- oder `.csv`-Datei als Eingabe übergeben; das Tool liest alle Zeilen und Spalten ein. *(AC1, AC9)*
-- [ ] **IO-02**: Das Tool erkennt die URL-Spalte tolerant (Namensvarianten «URL», «Website», «Webseite», «Web», …); fehlt eine erkennbare URL-Spalte → klare Fehlermeldung statt Absturz. *(AC2, AC4)*
-- [ ] **IO-03**: Die Ausgabe enthält **alle Original-Spalten unverändert** (Werte, Reihenfolge) plus genau zwei neue Spalten `Website-Bedarf (1-5)` und `Zahlungskräftigkeit (1-5)`. *(AC2)*
-- [ ] **IO-04**: Beide Score-Spalten sind ganzzahlig 1–5 und nie leer (jede Eingabezeile bekommt beide Scores). *(AC2)*
-- [ ] **IO-05**: Die Ausgabe ist absteigend sortiert zuerst nach `Website-Bedarf`, dann nach `Zahlungskräftigkeit`; dabei geht keine Originalzeile verloren (`len(out) == len(in)`). *(AC2)*
-- [ ] **IO-06**: Ausgabe wird als `.xlsx` geschrieben (CSV zusätzlich erlaubt); mindestens sichtbar: Kundenname, URL, beide Scores. *(AC2)*
-- [ ] **IO-07**: Ein einziger Einstiegspunkt/Befehl: Eingabedatei rein → Ausgabedatei raus, ohne Eingriff pro Zeile. *(AC1, AC9)*
+- [x] **IO-01**: Nutzer kann eine `.xlsx`- oder `.csv`-Datei als Eingabe übergeben; das Tool liest alle Zeilen und Spalten ein. *(AC1, AC9)*
+- [x] **IO-02**: Das Tool erkennt die URL-Spalte tolerant (Namensvarianten «URL», «Website», «Webseite», «Web», …); fehlt eine erkennbare URL-Spalte → klare Fehlermeldung statt Absturz. *(AC2, AC4)*
+- [x] **IO-03**: Die Ausgabe enthält **alle Original-Spalten unverändert** (Werte, Reihenfolge) plus genau zwei neue Spalten `Website-Bedarf (1-5)` und `Zahlungskräftigkeit (1-5)`. *(AC2)*
+- [x] **IO-04**: Beide Score-Spalten sind ganzzahlig 1–5 und nie leer (jede Eingabezeile bekommt beide Scores). *(AC2)*
+- [x] **IO-05**: Die Ausgabe ist absteigend sortiert zuerst nach `Website-Bedarf`, dann nach `Zahlungskräftigkeit`; dabei geht keine Originalzeile verloren (`len(out) == len(in)`). *(AC2)*
+- [x] **IO-06**: Ausgabe wird als `.xlsx` geschrieben (CSV zusätzlich erlaubt); mindestens sichtbar: Kundenname, URL, beide Scores. *(AC2)*
+- [x] **IO-07**: Ein einziger Einstiegspunkt/Befehl: Eingabedatei rein → Ausgabedatei raus, ohne Eingriff pro Zeile. *(AC1, AC9)*
 
 ### BED — Website-Bedarf-Score (6 Dimensionen)
 - [ ] **BED-01**: Dimension 1 *Existenz & Substanz* wird real gemessen: erreichbar (HTTP 200 nach http/https- und www-Varianten-Probe), geparkt/Platzhalter, Social-Media-only, leerer Inhalt. *(AC11, AC3)*
@@ -61,13 +61,13 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| IO-01 | Phase 1 | Pending |
-| IO-02 | Phase 1 | Pending |
-| IO-03 | Phase 1 | Pending |
-| IO-04 | Phase 1 | Pending |
-| IO-05 | Phase 1 | Pending |
-| IO-06 | Phase 1 | Pending |
-| IO-07 | Phase 1 | Pending |
+| IO-01 | Phase 1 | Done |
+| IO-02 | Phase 1 | Done |
+| IO-03 | Phase 1 | Done |
+| IO-04 | Phase 1 | Done |
+| IO-05 | Phase 1 | Done |
+| IO-06 | Phase 1 | Done |
+| IO-07 | Phase 1 | Done |
 | BED-01 | Phase 2 | Pending |
 | ROB-01 | Phase 2 | Pending |
 | ROB-02 | Phase 2 | Pending |

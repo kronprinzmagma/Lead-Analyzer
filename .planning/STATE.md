@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-06-14)
 
 **Core value:** Aus einer rohen Kundenliste pro Zeile zwei nachvollziehbare, sortierbare Scores (Website-Bedarf + Zahlungskräftigkeit) erzeugen; ideale Leads zuoberst. Excel rein -> Excel raus.
-**Current focus:** Phase 1 — E2E Skeleton + Excel I/O
+**Current focus:** Phase 2 — Fetch + Existence (Dim 1) + Robustness
 
 ## Current Position
 
-Phase: 1 of 7 (E2E Skeleton + Excel I/O)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-06-14 — Roadmap created (7 phases, MVP mode, 100% v1 coverage)
+Phase: 2 of 7 (Fetch + Existence + Robustness) — ready to plan
+Plan: Phase 1 COMPLETE (built + verified + 15 tests green + committed)
+Status: Phase 1 done; full GSD per-phase loop (plan → plan-check → execute → verify → review) for Phase 2 ff.
+Last activity: 2026-06-14 — Phase 1 E2E skeleton shipped: `python run.py data/sample_input.xlsx -o out.xlsx --limit 4` → sorted xlsx, 2 integer score columns, IO-01..07 satisfied.
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] ~14% (1 of 7 phases)
 
 ## Performance Metrics
 
