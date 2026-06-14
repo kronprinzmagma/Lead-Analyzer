@@ -13,12 +13,12 @@ From a raw Excel/CSV customer list to a sorted, scored lead list. We build the s
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: E2E Skeleton + Excel I/O** - Smallest runnable slice: read sample, trivial scores, sorted xlsx out ✓ (verified, 15 tests green)
-- [ ] **Phase 2: Fetch + Existence (Dim 1) + Robustness** - Non-crashing live fetch; dead/parked/social -> Bedarf 5
-- [ ] **Phase 3: Real Website-Bedarf Score (Dims 2,4,5,6 + Aggregation)** - Deterministic 6-dimension score with traceable reasons
-- [ ] **Phase 4: Zahlungskräftigkeit Estimator** - Second score from legal form + branch tier + site-size signals
+- [x] **Phase 2: Fetch + Existence (Dim 1) + Robustness** - Non-crashing live fetch; dead/parked/social -> Bedarf 5
+- [x] **Phase 3: Real Website-Bedarf Score (Dims 2,4,5,6 + Aggregation)** - Deterministic 6-dimension score with traceable reasons
+- [x] **Phase 4: Zahlungskräftigkeit Estimator** - Second score from legal form + branch tier + site-size signals
 - [x] **Phase 5: Cache + Concurrency** - Resumable per-URL cache and threaded fetch for hundreds of rows (completed 2026-06-14)
-- [ ] **Phase 6: Optional PageSpeed (Dim 3) + Rate Limiting** - Skippable PSI tier with backoff; viewport heuristic fallback
-- [ ] **Phase 7: Hardening + README + Full Sample Run** - <5-min setup, .env handling, full 42-row run with rationale
+- [x] **Phase 6: Optional PageSpeed (Dim 3) + Rate Limiting** - Skippable PSI tier with backoff; viewport heuristic fallback
+- [x] **Phase 7: Hardening + README + Full Sample Run** - <5-min setup, .env handling, full 42-row run with rationale
 
 ## Phase Details
 
@@ -118,7 +118,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. A full run over all 42 rows of `data/sample_input.xlsx` scores every row plausibly, including the empty-URL Kiosk, broken-URL Nähatelier, and large-vs-small firm cases, with a short written rationale for why the example scores make sense (AC10).
   3. `.env` and outputs are gitignored and the tool works locally without leaking firm/personal data (CLAUDE.md §6).
 **Plans**: 5 plans
-- [ ] 07-01-PLAN.md — README.md: setup <5min, one command, all CLI flags, .env/no-keys, scores + 6 dimensions (SETUP-01)
+- [x] 07-01-PLAN.md — README.md: setup <5min, one command, all CLI flags, .env/no-keys, scores + 6 dimensions (SETUP-01)
 - [ ] 07-02-PLAN.md — docs/sample_run_rationale.md: full 42-row distribution + AC10 rationale (edge cases + big-vs-small firm) (SETUP-02)
 - [ ] 07-03-PLAN.md — Privacy/scope hardening: gitignore audit + .env.example as only committed env file (SETUP-03)
 - [ ] 07-04-PLAN.md — Verification: full suite (202) + reproducible no-key full run + Definition-of-Done sign-off

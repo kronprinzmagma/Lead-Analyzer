@@ -24,9 +24,9 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 - [x] **BED-08**: Score-Richtung ist monoton korrekt: mehr/grössere Lücken ⇒ höherer Bedarf (per Richtungs-Tests abgesichert). *(AC3)*
 
 ### ZK — Zahlungskräftigkeit-Score
-- [ ] **ZK-01**: Pro Kunde wird ein 1–5-Score aus öffentlichen Signalen geschätzt: Rechtsform aus Firmenname (AG/GmbH/Einzelfirma), Branchen-Kaufkraft-Tier, Website-Grössensignale (mehrere Standorte/Team/Karriere). *(AC5)*
-- [ ] **ZK-02**: Jede Schätzung ist als Schätzung gekennzeichnet und ihre Signale/Annahmen sind nachvollziehbar (Begründungsspalte und/oder Log); keine erfundenen Fakten — fehlt Datenlage, konservativ schätzen + kennzeichnen. *(AC5)*
-- [ ] **ZK-03**: Score-Richtung korrekt: höher = mehr Kaufkraft. *(AC3)*
+- [x] **ZK-01**: Pro Kunde wird ein 1–5-Score aus öffentlichen Signalen geschätzt: Rechtsform aus Firmenname (AG/GmbH/Einzelfirma), Branchen-Kaufkraft-Tier, Website-Grössensignale (mehrere Standorte/Team/Karriere). *(AC5)*
+- [x] **ZK-02**: Jede Schätzung ist als Schätzung gekennzeichnet und ihre Signale/Annahmen sind nachvollziehbar (Begründungsspalte und/oder Log); keine erfundenen Fakten — fehlt Datenlage, konservativ schätzen + kennzeichnen. *(AC5)*
+- [x] **ZK-03**: Score-Richtung korrekt: höher = mehr Kaufkraft. *(AC3)*
 
 ### ROB — Robustheit
 - [x] **ROB-01**: Leere URL, ungültige/kaputte URL (`htp://…`), nicht erreichbare Seite, Timeout, geparkte Domain, Social-only führen **nie** zum Absturz; jede solche Zeile erhält einen sinnvollen Score (bei «keine Website» = Bedarf 5) + Vermerk. *(AC4)*
@@ -42,9 +42,9 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 - [x] **PERF-03**: Hunderte Zeilen werden in vertretbarer Zeit verarbeitet (nebenläufiger Fetch, optionale Stages skippbar via Flag). *(AC1)*
 
 ### SETUP — Setup, Docs, Verifikation
-- [ ] **SETUP-01**: README erklärt Setup (inkl. API-Keys via `.env`) und Aufruf in <5 Minuten; läuft auch ganz ohne Keys (graceful degradation). *(AC9)*
-- [ ] **SETUP-02**: Lauffähig gegen `data/sample_input.xlsx`; die Edge-Cases (leere URL Kiosk, kaputte URL Nähatelier, grosse vs. kleine Firma) werden plausibel bewertet, mit kurzer Begründung warum die Beispiel-Scores sinnvoll sind. *(AC10)*
-- [ ] **SETUP-03**: `.env` und Ausgaben werden nicht committet (.gitignore); Tool arbeitet lokal. *(CLAUDE.md §6)*
+- [x] **SETUP-01**: README erklärt Setup (inkl. API-Keys via `.env`) und Aufruf in <5 Minuten; läuft auch ganz ohne Keys (graceful degradation). *(AC9)*
+- [x] **SETUP-02**: Lauffähig gegen `data/sample_input.xlsx`; die Edge-Cases (leere URL Kiosk, kaputte URL Nähatelier, grosse vs. kleine Firma) werden plausibel bewertet, mit kurzer Begründung warum die Beispiel-Scores sinnvoll sind. *(AC10)*
+- [x] **SETUP-03**: `.env` und Ausgaben werden nicht committet (.gitignore); Tool arbeitet lokal. *(CLAUDE.md §6)*
 
 ## v2 / Differentiators (deferred)
 - [ ] **DIFF-01**: Live-Zefix-Lookup (Handelsregister) zur Anreicherung der Zahlungskräftigkeit (Auth erst per Live-Probe klären). *(verschärft ZK-01)*
@@ -68,26 +68,26 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 | IO-05 | Phase 1 | Done |
 | IO-06 | Phase 1 | Done |
 | IO-07 | Phase 1 | Done |
-| BED-01 | Phase 2 | Complete |
-| ROB-01 | Phase 2 | Complete |
-| ROB-02 | Phase 2 | Complete |
-| ROB-03 | Phase 2 | Complete |
-| BED-02 | Phase 3 | Complete |
-| BED-04 | Phase 3 | Complete |
-| BED-05 | Phase 3 | Complete |
-| BED-06 | Phase 3 | Complete |
-| BED-07 | Phase 3 | Complete |
-| BED-08 | Phase 3 | Complete |
-| NACH-01 | Phase 3 | Complete |
-| ZK-01 | Phase 4 | Pending |
-| ZK-02 | Phase 4 | Pending |
-| ZK-03 | Phase 4 | Pending |
-| PERF-01 | Phase 5 | Complete |
-| PERF-03 | Phase 5 | Complete |
-| BED-03 | Phase 6 | Complete |
-| PERF-02 | Phase 6 | Complete |
-| SETUP-01 | Phase 7 | Pending |
-| SETUP-02 | Phase 7 | Pending |
-| SETUP-03 | Phase 7 | Pending |
+| BED-01 | Phase 2 | Done |
+| ROB-01 | Phase 2 | Done |
+| ROB-02 | Phase 2 | Done |
+| ROB-03 | Phase 2 | Done |
+| BED-02 | Phase 3 | Done |
+| BED-04 | Phase 3 | Done |
+| BED-05 | Phase 3 | Done |
+| BED-06 | Phase 3 | Done |
+| BED-07 | Phase 3 | Done |
+| BED-08 | Phase 3 | Done |
+| NACH-01 | Phase 3 | Done |
+| ZK-01 | Phase 4 | Done |
+| ZK-02 | Phase 4 | Done |
+| ZK-03 | Phase 4 | Done |
+| PERF-01 | Phase 5 | Done |
+| PERF-03 | Phase 5 | Done |
+| BED-03 | Phase 6 | Done |
+| PERF-02 | Phase 6 | Done |
+| SETUP-01 | Phase 7 | Done |
+| SETUP-02 | Phase 7 | Done |
+| SETUP-03 | Phase 7 | Done |
 
 **Coverage:** 28/28 v1 requirements mapped. v2/DIFF-* deliberately unmapped (deferred).

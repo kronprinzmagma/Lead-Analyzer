@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
+status: completed
 stopped_at: Completed 02-02-PLAN.md (fetch() seam + Dim-1 analyze_row wiring); 61 tests green.
-last_updated: "2026-06-14T16:07:03.077Z"
-last_activity: "2026-06-14 — Plan 06-04 shipped lead_analyzer/clients/pagespeed.py: optional, rate-limited PSI client (semaphore cap 2 + per-run budget + Retry-After backoff with injected sleep + namespaced cache); returns None on every failure, never raises; default OFF without PAGESPEED_API_KEY. tests/test_pagespeed_client.py 8/8 green; suite 190 passed (excl. 06-03-owned test_performance.py)."
+last_updated: "2026-06-14T18:03:55.441Z"
+last_activity: "2026-06-14 — Plan 06-05 wired Dimension 3 end-to-end: analyze_row builds Dim 3 from performance.analyze(fr, soup, ps_result); run() constructs exactly one shared PageSpeedClient via from_config (shared semaphore + budget), gated on use_pagespeed+key; ps_result gated on is_available()+fr.ok+fr.html (T-06-12); per-row boundary + ThreadPoolExecutor intact. Offline default byte-identical to Phase 5 for viewport-present rows (new regression test). BED-03 assertion updates for genuinely viewport-ABSENT fixtures (grep-confirmed); scoring bands untouched. Suite 200 passed; live run over data/sample_input.xlsx (no key -> PSI off) processed 42 rows offline-safe."
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 16
-  completed_plans: 16
-  percent: 100
+  total_plans: 21
+  completed_plans: 17
+  percent: 81
 ---
 
 # Project State
@@ -30,7 +30,7 @@ Plan: Phase 6 complete — Plan 06-05 wired Dim 3 into the pipeline (performance
 Status: Phase 6 done. Next: Phase 7.
 Last activity: 2026-06-14 — Plan 06-05 wired Dimension 3 end-to-end: analyze_row builds Dim 3 from performance.analyze(fr, soup, ps_result); run() constructs exactly one shared PageSpeedClient via from_config (shared semaphore + budget), gated on use_pagespeed+key; ps_result gated on is_available()+fr.ok+fr.html (T-06-12); per-row boundary + ThreadPoolExecutor intact. Offline default byte-identical to Phase 5 for viewport-present rows (new regression test). BED-03 assertion updates for genuinely viewport-ABSENT fixtures (grep-confirmed); scoring bands untouched. Suite 200 passed; live run over data/sample_input.xlsx (no key -> PSI off) processed 42 rows offline-safe.
 
-Progress: [██████████] 100%
+Progress: [████████░░] 81%
 
 ## Performance Metrics
 
