@@ -6,18 +6,45 @@ die echten Analyzer werden in späteren Phasen hier eingehängt — die Struktur
 
 from __future__ import annotations
 
-from . import scoring, table_io
+from . import fetch, scoring, table_io
+from .analyzers import existence
 from .config import Config
 from .models import RowRecord, RowResult
 
 
-def analyze_row(record: RowRecord, url_col: str, config: Config) -> RowResult:
-    """Bewertet eine einzelne Zeile. Phase 1: Platzhalter.
+def _zahl_placeholder(record: RowRecord) -> int:
+    """Zahlungskräftigkeit bleibt in Phase 2 auf dem Phase-1-Platzhalter (Phase 4 ersetzt)."""
+    return scoring.placeholder_result(record).zahl
 
-    Wird nie eine Exception nach aussen werfen (AC4) — ab Phase 2 mit echtem
-    try/except-Boundary um die Netz-/Analyse-Logik.
+
+def analyze_row(record: RowRecord, url_col: str, config: Config) -> RowResult:
+    """Bewertet eine Zeile via Dimension 1 — netz-robust, wirft nie (AC4/ROB-03).
+
+    Ablauf: URL normalisieren -> leer? Bedarf 5 'keine Website' OHNE Netz; sonst
+    fetch (wirft nie) -> existence.analyze (rein) -> dead-Ursachen überschreiben
+    Bedarf auf 5, sonst provisorischer Score. `zahl` bleibt Platzhalter. Alles in
+    einer Per-Row-Boundary: eine kaputte Zeile killt den Lauf nicht (Pitfall 1).
     """
-    return scoring.placeholder_result(record)
+    try:
+        raw = record.cells.get(url_col)
+        candidates = fetch.normalize(raw)
+        if candidates is None:                       # leere URL -> KEIN Netz
+            return RowResult(
+                record.index, bedarf=5, zahl=_zahl_placeholder(record),
+                reason="keine Website",
+            )
+        fr = fetch.fetch(candidates, config)         # wirft nie
+        verdict = existence.analyze(fr)              # rein
+        bedarf = scoring.bedarf_from_dim1(verdict)   # dead -> 5, sonst provisorisch
+        return RowResult(
+            record.index, bedarf=bedarf, zahl=_zahl_placeholder(record),
+            reason=verdict.reason, verdicts=[verdict],
+        )
+    except Exception as e:                            # AC4-Boundary — der Lauf geht weiter
+        return RowResult(
+            record.index, bedarf=5, zahl=_zahl_placeholder(record),
+            reason=f"Fehler: {type(e).__name__}",
+        )
 
 
 def run(config: Config) -> dict:
