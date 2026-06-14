@@ -12,6 +12,10 @@ from __future__ import annotations
 
 from urllib.parse import urlsplit, urlunsplit
 
+import requests
+
+from .models import FetchResult
+
 
 def normalize(raw) -> list[str] | None:
     """Roher Zellwert -> geordnete Kandidaten-URLs, oder None bei leerer Eingabe.
@@ -61,3 +65,122 @@ def normalize(raw) -> list[str] | None:
             seen.add(u)
             uniq.append(u)
     return uniq
+
+
+# --------------------------------------------------------------------------- #
+# fetch() — die EINZIGE netzführende Funktion. Wirft NIE (AC4/ROB-02).         #
+# Tests mocken `requests.Session.get`; alles darüber/darunter ist rein.        #
+# --------------------------------------------------------------------------- #
+
+# Browser-UA + de-CH-Header gegen Schweizer WAF/Cloudflare-403 (Pitfall 3) und
+# als Sprach-Bias für spätere deutsche Keyword-Dimensionen.
+_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0 Safari/537.36"
+    ),
+    "Accept-Language": "de-CH,de;q=0.9,en;q=0.5",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+}
+
+# Hartes Byte-Limit: alle Dim-1-Signale (Title, Body-Text) stehen vorne; kappt
+# Endlos-/Riesen-Bodies (DoS-Schutz T-02-04, Pitfall 5/6).
+_MAX_BYTES = 2_000_000
+
+
+def _read_capped(resp) -> str:
+    """Liest den Body gestreamt bis zum 2-MB-Cap und dekodiert tolerant.
+
+    Encoding: deklariert -> apparent_encoding -> utf-8; immer `errors='replace'`,
+    damit latin-1/win-1252-Seiten nie einen UnicodeDecodeError auslösen (AC4).
+    """
+    chunks: list[bytes] = []
+    total = 0
+    for chunk in resp.iter_content(8192):
+        if not chunk:
+            continue
+        chunks.append(chunk)
+        total += len(chunk)
+        if total >= _MAX_BYTES:
+            break
+    raw = b"".join(chunks)
+    enc = resp.encoding or resp.apparent_encoding or "utf-8"
+    return raw.decode(enc, errors="replace")
+
+
+def fetch(candidates: list[str], config) -> FetchResult:
+    """Probt die Kandidaten-Varianten und liefert ein `FetchResult`. Wirft NIE.
+
+    Knöpfe (ROB-02): hartes `timeout=(connect, read)` aus der Config (requests hat
+    KEINEN Default-Timeout — Pitfall 2), Browser-UA + de-CH-Header, redirect-Cap,
+    `stream=True` + 2-MB-Body-Cap. SSL wird als Signal erfasst, nicht als Crash:
+    bei `SSLError` (verify=True) wird dieselbe URL mit `verify=False` neu geholt,
+    der Body bleibt lesbar, `ssl_ok=False` (Phase 3 wertet das). Jede requests-
+    Exception wird auf eine Notiz gemappt; eine echte HTTP-Antwort (auch 4xx/5xx)
+    beendet das Probing sofort (eine Antwort = Host existiert).
+    """
+    session = requests.Session()
+    session.max_redirects = 10               # Redirect-Schleifen begrenzen (T-02-05)
+    session.headers.update(_HEADERS)
+    timeout = (config.timeout_connect, config.timeout_read)
+    last_err = "nicht erreichbar"
+
+    for url in candidates:
+        for verify in (True, False):         # zweiter Durchlauf NUR nach SSLError
+            try:
+                if verify is False:
+                    # InsecureRequestWarning nur auf dem Fallback-Pfad unterdrücken
+                    # (Signal ist bereits als ssl_ok=False erfasst). Scoped, nicht global.
+                    from urllib3.exceptions import InsecureRequestWarning  # lokal: optionaler Dep-Pfad
+                    import warnings
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore", InsecureRequestWarning)
+                        resp = session.get(
+                            url, timeout=timeout, allow_redirects=True,
+                            stream=True, verify=False,
+                        )
+                else:
+                    resp = session.get(
+                        url, timeout=timeout, allow_redirects=True,
+                        stream=True, verify=True,
+                    )
+                html = _read_capped(resp)
+                return FetchResult(
+                    url=url,
+                    ok=(200 <= resp.status_code < 400),
+                    status=resp.status_code,
+                    final_url=resp.url,
+                    redirected=(resp.url != url),
+                    ssl_ok=verify,           # False, wenn wir auf verify=False fielen
+                    headers=dict(resp.headers),
+                    html=html,
+                    error=None,
+                )
+            except requests.exceptions.SSLError:
+                last_err = "SSL-Fehler"
+                continue                      # dieselbe URL mit verify=False erneut
+            except requests.exceptions.Timeout:
+                last_err = "Timeout"
+                break                         # nächste Variante
+            except requests.exceptions.TooManyRedirects:
+                last_err = "Redirect-Schleife"
+                break
+            except requests.exceptions.RequestException:
+                last_err = "nicht erreichbar"
+                break
+            except Exception as e:            # belt-and-braces: fetch() wirft NIE
+                last_err = f"Fetch-Ausnahme: {type(e).__name__}"
+                break
+
+    return FetchResult(
+        url=candidates[0] if candidates else "",
+        ok=False,
+        status=None,
+        final_url=None,
+        redirected=False,
+        ssl_ok=False,
+        headers={},
+        html=None,
+        error=last_err,
+    )
