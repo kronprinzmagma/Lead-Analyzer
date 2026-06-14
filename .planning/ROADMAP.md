@@ -106,7 +106,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   - [x] 06-02-PLAN.md — stdlib .env loader + PsResult dataclass + --no-pagespeed flag (config/cli/models)
   - [x] 06-03-PLAN.md — performance.py Dim-3 analyzer: viewport baseline + Lighthouse refinement (inversion guard)
   - [x] 06-04-PLAN.md — clients/pagespeed.py optional PSI client: budget, semaphore, backoff, namespaced cache
-  - [ ] 06-05-PLAN.md — wire Dim 3 into pipeline (one shared client) + offline byte-identical regression
+  - [x] 06-05-PLAN.md — wire Dim 3 into pipeline (one shared client) + offline byte-identical regression
 
 ### Phase 7: Hardening + README + Full Sample Run
 **Goal**: The tool is set-up-and-run in under 5 minutes and produces a justified full-sample output, including edge cases.
