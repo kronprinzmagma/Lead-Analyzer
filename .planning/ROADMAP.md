@@ -58,7 +58,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. The six dimension verdicts aggregate deterministically into a 1-5 score per the bands in `docs/scoring_website_bedarf.md`, with "no reachable website -> 5" always overriding (AC3, AC11).
   3. Score direction is monotonic: more/larger gaps yield a higher Bedarf, and a modern site over all dimensions scores 1 (verified by direction tests) (AC3).
   4. Each customer has a traceable record (reason column and/or run-log) of which dimensions/signals drove the Bedarf score (AC6, AC11).
-**Plans**: TBD
+**Plans**: 4 plans
+- [ ] 03-01-PLAN.md — Dim 2 Technische Basis + Dim 4 SEO (really measured, BED-02/04)
+- [ ] 03-02-PLAN.md — Dim 5 KI-Readiness + Dim 6 Inhalt/Aktualität (heuristic, BED-05/06)
+- [ ] 03-03-PLAN.md — scoring.bedarf 6-dim aggregation + reasons.py (BED-07/08, NACH-01)
+- [ ] 03-04-PLAN.md — pipeline wiring: parse-once, 6 verdicts, Begründung, modern→1/broken→5
 **UI hint**: no
 
 ### Phase 4: Zahlungskräftigkeit Estimator
@@ -114,7 +118,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 |-------|----------------|--------|-----------|
 | 1. E2E Skeleton + Excel I/O | 0/TBD | Not started | - |
 | 2. Fetch + Existence + Robustness | 0/2 | Not started | - |
-| 3. Real Website-Bedarf Score | 0/TBD | Not started | - |
+| 3. Real Website-Bedarf Score | 0/4 | Not started | - |
 | 4. Zahlungskräftigkeit Estimator | 0/TBD | Not started | - |
 | 5. Cache + Concurrency | 0/TBD | Not started | - |
 | 6. Optional PageSpeed + Rate Limiting | 0/TBD | Not started | - |
