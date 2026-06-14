@@ -88,7 +88,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Per-URL results are cached incrementally to disk with atomic temp-file + replace; a re-run skips already-analyzed URLs and an interrupted run does not discard completed work (AC7).
   2. The orchestrator fetches concurrently (thread pool) and processes hundreds of rows in reasonable time, with stages skippable via flag (AC1).
   3. Caching and concurrency preserve correctness: output still has all rows, correct sort, and unchanged original columns.
-**Plans**: TBD
+**Plans**: 2 plans
+  - [ ] 05-01-PLAN.md — Atomic per-URL cache (cache.py) + FetchResult serialization + cache-aside in fetch.fetch (PERF-01)
+  - [ ] 05-02-PLAN.md — ThreadPoolExecutor in run() (determinism-preserving) + --workers/--no-cache CLI flags + resume (PERF-03)
 
 ### Phase 6: Optional PageSpeed (Dim 3) + Rate Limiting
 **Goal**: PageSpeed enriches Dimension 3 when available, stays fully skippable, and never stalls or aborts the run.
