@@ -107,7 +107,13 @@ def _read_capped(resp) -> str:
             break
     raw = b"".join(chunks)
     enc = resp.encoding or resp.apparent_encoding or "utf-8"
-    return raw.decode(enc, errors="replace")
+    try:
+        return raw.decode(enc, errors="replace")
+    except LookupError:
+        # Deklariertes Encoding ist kein gültiger Codec (z.B. Tippfehler im
+        # charset). errors='replace' fängt das NICHT -> utf-8-Fallback, damit ein
+        # lesbarer Body nicht unnötig verworfen wird (Review L3).
+        return raw.decode("utf-8", errors="replace")
 
 
 def fetch(candidates: list[str], config) -> FetchResult:

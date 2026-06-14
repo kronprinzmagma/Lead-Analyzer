@@ -98,13 +98,17 @@ def run(config: Config) -> dict:
         for fut in as_completed(futs):
             i = futs[fut]
             results[i] = fut.result()
-    assert all(r is not None for r in results), "Pool hat eine Zeile verloren!"
+    # Echte Checks (kein assert — würde unter `python -O` verschwinden und die
+    # AC1/AC2-Garantie "keine Zeile verloren" still aushebeln, Review M1).
+    if any(r is None for r in results):
+        raise RuntimeError("Pool hat eine Zeile verloren!")
 
     pairs = list(zip(records, results))
     ordered = scoring.stable_sort(pairs)
 
     # AC2-Invariante: keine Zeile verloren.
-    assert len(ordered) == len(records), "Sort hat Zeilen verloren/dupliziert!"
+    if len(ordered) != len(records):
+        raise RuntimeError("Sort hat Zeilen verloren/dupliziert!")
 
     table_io.write_output(
         config.output,
