@@ -117,7 +117,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. README explains setup (optional API keys via `.env`) and the single command in under 5 minutes; the tool runs end-to-end with no keys via graceful degradation (AC9).
   2. A full run over all 42 rows of `data/sample_input.xlsx` scores every row plausibly, including the empty-URL Kiosk, broken-URL Nähatelier, and large-vs-small firm cases, with a short written rationale for why the example scores make sense (AC10).
   3. `.env` and outputs are gitignored and the tool works locally without leaking firm/personal data (CLAUDE.md §6).
-**Plans**: TBD
+**Plans**: 5 plans
+- [ ] 07-01-PLAN.md — README.md: setup <5min, one command, all CLI flags, .env/no-keys, scores + 6 dimensions (SETUP-01)
+- [ ] 07-02-PLAN.md — docs/sample_run_rationale.md: full 42-row distribution + AC10 rationale (edge cases + big-vs-small firm) (SETUP-02)
+- [ ] 07-03-PLAN.md — Privacy/scope hardening: gitignore audit + .env.example as only committed env file (SETUP-03)
+- [ ] 07-04-PLAN.md — Verification: full suite (202) + reproducible no-key full run + Definition-of-Done sign-off
+- [ ] 07-05-PLAN.md — Planning-state cleanup (REQUIREMENTS/ROADMAP traceability) + optional unreachable-reason dedup
 
 ## Progress
 
@@ -132,4 +137,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 4. Zahlungskräftigkeit Estimator | 0/3 | Not started | - |
 | 5. Cache + Concurrency | 2/2 | Complete   | 2026-06-14 |
 | 6. Optional PageSpeed + Rate Limiting | 0/TBD | Not started | - |
-| 7. Hardening + README + Full Sample Run | 0/TBD | Not started | - |
+| 7. Hardening + README + Full Sample Run | 0/4 | Not started | - |
