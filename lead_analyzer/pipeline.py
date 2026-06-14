@@ -13,6 +13,8 @@ kaputte Zeile killt den Lauf nicht (AC4/ROB-03).
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from bs4 import BeautifulSoup
 
 from . import fetch, reasons, scoring, table_io
@@ -83,7 +85,20 @@ def run(config: Config) -> dict:
     if config.limit is not None:
         records = records[: config.limit]
 
-    results: list[RowResult] = [analyze_row(r, url_col, config) for r in records]
+    # PERF-03: I/O-bound fan-out über Threads. Jeder Future schreibt GENAU einen
+    # festen Index (futs[fut]) -> keine geteilte mutable Stelle (T-05-05). analyze_row
+    # wirft NIE (eigene Boundary), darum kann fut.result() nicht re-raisen (T-05-06).
+    # Der stabile Sort (Tiebreaker index) macht das Output unabhängig von der
+    # Completion-Reihenfolge -> workers=1 und workers=8 liefern identische Zeilen (AC1).
+    results: list[RowResult | None] = [None] * len(records)
+    workers = max(1, getattr(config, "workers", 8))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futs = {pool.submit(analyze_row, r, url_col, config): i
+                for i, r in enumerate(records)}
+        for fut in as_completed(futs):
+            i = futs[fut]
+            results[i] = fut.result()
+    assert all(r is not None for r in results), "Pool hat eine Zeile verloren!"
 
     pairs = list(zip(records, results))
     ordered = scoring.stable_sort(pairs)
