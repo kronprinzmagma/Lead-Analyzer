@@ -52,6 +52,25 @@ class RowResult:
 
 
 @dataclass
+class PsResult:
+    """PageSpeed-Insights-Resultat (Dim 3, Phase 6) — klein und JSON-serialisierbar.
+
+    Alle Felder sind JSON-native (float|None / bool), damit `__dict__` verlustfrei
+    durch `cache.put/get` im PSI-Namespace ("pagespeed-v1") round-trippt (AC7/AC8).
+    Wichtig (Degradations-Vertrag, Pitfall 8): ein FEHLER signalisiert sich durch
+    `None` als Rückgabe des Clients — NICHT durch `ok=False`. `ok` ist bei einem
+    konstruierten Resultat stets True; ein PSI-Fehler/Timeout liefert gar kein
+    PsResult, sondern None, und der Analyzer behandelt None wie "nicht versucht".
+    [CITED: 06-RESEARCH.md "PsResult dataclass"]
+    """
+    perf_score: float | None = None   # 0..1 (Lighthouse performance category)
+    lcp_ms: float | None = None       # Largest Contentful Paint (ms)
+    cls: float | None = None          # Cumulative Layout Shift
+    tbt_ms: float | None = None       # Total Blocking Time (ms)
+    ok: bool = True                   # immer True bei Konstruktion; None ersetzt "not ok"
+
+
+@dataclass
 class FetchResult:
     """Roh-Fakten eines HTTP-Abrufs (fetch-once-parse-many).
 

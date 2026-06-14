@@ -7,7 +7,41 @@ schon angelegt, damit die Signaturen stabil bleiben — Phase 1 nutzt nur einen 
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
+from pathlib import Path
+
+
+def load_dotenv(path: str = ".env") -> None:
+    """Lädt KEY=VALUE-Zeilen aus einer `.env` in os.environ, OHNE bestehende Vars zu überschreiben.
+
+    Winziger stdlib-Parser statt python-dotenv (nicht installiert; zero-new-dep, AC9).
+    [CITED: 06-RESEARCH.md "Tiny stdlib .env loader"]
+
+    Verhalten (von tests/test_env_loader.py festgenagelt):
+    - Fehlende Datei -> return None, wirft NIE (Robustheit, AC4/AC9).
+    - Pro Zeile: strippen; Leerzeilen, Kommentare (`#`) und Zeilen ohne `=` überspringen.
+    - `key, _, val = line.partition("=")`; umschliessende " oder ' am Wert strippen.
+    - `os.environ.setdefault(key, val)` -> ein real exportierter Var gewinnt immer (T-06-03).
+    - Datei-Lesen in try/except OSError -> ein kaputtes File crasht den Start nicht (T-06-04).
+    """
+    p = Path(path)
+    if not p.exists():
+        return None
+    try:
+        lines = p.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return None
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, val = line.partition("=")
+        key = key.strip()
+        val = val.strip().strip('"').strip("'")
+        if key:
+            os.environ.setdefault(key, val)   # bestehende Umgebungs-Var NIE überschreiben
+    return None
 
 
 @dataclass
@@ -22,6 +56,8 @@ class Config:
     workers: int = 8                  # Thread-Pool-Grösse (Phase 5)
     use_cache: bool = True            # Phase 5
     use_pagespeed: bool = True        # Phase 6
+    pagespeed_concurrency: int = 2    # Phase 6: PSI-Semaphore-Kappe (< workers, AC8)
+    pagespeed_budget: int = 400       # Phase 6: max. PSI-Calls pro Lauf (PERF-02)
     use_llm: bool = True              # v2 / DIFF-02
     timeout_connect: float = 5.0      # Phase 2
     timeout_read: float = 10.0        # Phase 2
