@@ -74,7 +74,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Each row gets a 1-5 estimate combining legal form from the company name (word-bounded AG/GmbH/Einzelfirma), a branch kaufkraft tier, and website size signals (multiple locations/team/careers) (AC5).
   2. Every estimate is labelled as an estimate with its driving signals/assumptions recorded (reason column and/or log); thin data falls back to a conservative score with no invented facts (AC5, AC6).
   3. Score direction is correct: higher = more purchasing power (AC3).
-**Plans**: TBD
+**Plans**: 3 plans
+  - [ ] 04-01-PLAN.md — RED: PaymentEstimate dataclass + full failing test matrix (groups A/B/C, combine, conservative default, Pitfall-16 misfire, direction, range)
+  - [ ] 04-02-PLAN.md — GREEN: analyzers/payment.py (legal form + branch tier + size signals → 1-5, conservative default)
+  - [ ] 04-03-PLAN.md — WIRE: reasons.build(payment) per-section cap + analyze_row real zahl on all three paths
 
 ### Phase 5: Cache + Concurrency
 **Goal**: Runs are resumable and fast enough for hundreds of rows via a per-URL cache and threaded fetch.
@@ -119,7 +122,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 1. E2E Skeleton + Excel I/O | 0/TBD | Not started | - |
 | 2. Fetch + Existence + Robustness | 0/2 | Not started | - |
 | 3. Real Website-Bedarf Score | 0/4 | Not started | - |
-| 4. Zahlungskräftigkeit Estimator | 0/TBD | Not started | - |
+| 4. Zahlungskräftigkeit Estimator | 0/3 | Not started | - |
 | 5. Cache + Concurrency | 0/TBD | Not started | - |
 | 6. Optional PageSpeed + Rate Limiting | 0/TBD | Not started | - |
 | 7. Hardening + README + Full Sample Run | 0/TBD | Not started | - |
