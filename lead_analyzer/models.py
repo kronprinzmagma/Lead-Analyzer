@@ -29,6 +29,19 @@ class DimensionVerdict:
 
 
 @dataclass
+class PaymentEstimate:
+    """Zahlungskräftigkeit-Schätzung (AC5: IMMER als Schätzung gekennzeichnet).
+
+    Reines Datenträger-Objekt — die Logik lebt in analyzers/payment.py. `reason`
+    ist stets mit "Zahl (Schätzung): " präfixiert; `signals` ist die volle
+    Treiberliste fürs Lauf-Log (AC6). [CITED: 04-RESEARCH.md Code Examples]
+    """
+    zahl: int                 # 1..5, nie leer (AC2/IO-04)
+    reason: str               # "Zahl (Schätzung): …" — Begründungsspalte + Log
+    signals: list[str] = field(default_factory=list)  # treibende Signale (AC6)
+
+
+@dataclass
 class RowResult:
     """Bewertungsergebnis einer Zeile. Beide Scores sind immer 1..5 (AC2: nie leer)."""
     index: int
