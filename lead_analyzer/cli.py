@@ -31,6 +31,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-reason", action="store_true",
         help="Begründungs-Spalte weglassen (nur die zwei Score-Spalten)",
     )
+    p.add_argument(
+        "--workers", type=int, default=8,
+        help="Anzahl paralleler Fetch-Threads (Default: 8)",
+    )
+    p.add_argument(
+        "--no-cache", action="store_true",
+        help="Cache komplett umgehen (kein Lesen, kein Schreiben)",
+    )
     return p
 
 
@@ -42,6 +50,9 @@ def main(argv: list[str] | None = None) -> int:
         limit=args.limit,
         write_csv=args.csv,
         reason_column=not args.no_reason,
+        # Default workers=8 entspricht dem Config-Default (Politeness-Annahme A1).
+        workers=args.workers,
+        use_cache=not args.no_cache,
     )
     try:
         summary = run(config)
