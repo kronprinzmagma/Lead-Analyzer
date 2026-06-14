@@ -119,10 +119,12 @@ def test_parked_is_bedarf_5(monkeypatch):
 
 
 def test_block_403_is_neutral_not_5(monkeypatch):
-    # Clean-https-WAF-Block: Dim1 gap + Dim2 ok + Dim4/5/6 neutral -> G=1 -> Band 2.
-    # !=5 ist die load-bearing Invariante; ==2 ist der dokumentierte 6-Dim-Wert
-    # (war provisorisch 3 unter dem reinen Dim-1-Pfad) — identisch in
-    # test_pipeline_bedarf.py.
+    # Clean-https-WAF-Block: Dim1 gap + Dim2 ok + Dim3 gap + Dim4/5/6 neutral
+    # -> G=2 -> Band 3. !=5 ist die load-bearing Invariante; ==3 ist der dokumentierte
+    # 6-Dim-Wert — identisch in test_pipeline_bedarf.py.
+    # BED-03: ohne Body (html=None) gibt es KEIN viewport-meta (soup None) -> die
+    # Dim-3-Heuristik liefert korrekt 'gap' statt des alten Platzhalter-'ok'
+    # (Mobil-Tauglichkeit eines geblockten Bodys ist nicht nachweisbar). Bänder unverändert.
     monkeypatch.setattr(
         fetch, "fetch",
         lambda c, cfg: make_fetch_result(
@@ -131,16 +133,22 @@ def test_block_403_is_neutral_not_5(monkeypatch):
     )
     res = analyze_row(_rec("https://waf.ch"), _URL_COL, _CFG)
     assert res.bedarf != 5
-    assert res.bedarf == 2
+    assert res.bedarf == 3
     assert "blockiert" in res.reason
 
 
 def test_social_only_high_but_not_5(monkeypatch):
+    # BED-03: dieser Test prüft die Dim-1-Logik (Social-only -> severe, aber NICHT
+    # dead-5). Das Fixture bekommt ein viewport-meta, damit der ab Phase 6 reale
+    # Dim-3-Befund 'ok' ist und KEINE Dim-3-Lücke das Dim-1-Verhalten überlagert
+    # (sonst kippte die G-Summe der ohnehin dünnen Social-Seite auf Band 5). Damit
+    # bleibt der dokumentierte Wert 4 erhalten; Scoring-Bänder unverändert.
     monkeypatch.setattr(
         fetch, "fetch",
         lambda c, cfg: make_fetch_result(
             final_url="https://facebook.com/firma",
-            html="<html><body>Profil</body></html>"),
+            html='<html><head><meta name="viewport" content="width=device-width">'
+                 "</head><body>Profil</body></html>"),
     )
     res = analyze_row(_rec("https://facebook.com/firma"), _URL_COL, _CFG)
     assert res.bedarf == 4  # severe-not-dead

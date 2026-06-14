@@ -3,8 +3,9 @@
 Bewertung pro Zeile (analyze_row): URL normalisieren -> fetch (wirft nie) -> HTML
 GENAU EINMAL parsen (parse-once) -> die geteilte soup an alle HTML-Dimensionen
 reichen (Dim 1 existence, Dim 4 seo, Dim 5 ai_readiness, Dim 6 content); Dim 2
-technical misst aus dem FetchResult (auch ohne Body); Dim 3 ist der PageSpeed-
-Platzhalter (Phase 6). Die sechs Verdicts -> scoring.bedarf (dead -> 5, sonst
+technical misst aus dem FetchResult (auch ohne Body); Dim 3 ist ab Phase 6 der
+echte Performance-Analyzer (performance.analyze: viewport-Heuristik + optionale
+PageSpeed-Insights-Verfeinerung), kein Platzhalter mehr. Die sechs Verdicts -> scoring.bedarf (dead -> 5, sonst
 G/S-Bänder) und reasons.build (Begründungsspalte/NACH-01). `zahl` ist ab Phase 4
 die echte Zahlungskräftigkeit-Schätzung (payment.estimate) auf ALLEN drei Pfaden —
 normal, leere-URL, Exception-Boundary. Alles in einer Per-Row-Boundary: eine
@@ -18,21 +19,30 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from bs4 import BeautifulSoup
 
 from . import fetch, reasons, scoring, table_io
-from .analyzers import ai_readiness, content, existence, payment, seo, technical
+from .analyzers import ai_readiness, content, existence, payment, performance, seo, technical
+from .clients.pagespeed import PageSpeedClient
 from .config import Config
 from .models import RowRecord, RowResult
 
 
-def analyze_row(record: RowRecord, url_col: str, config: Config) -> RowResult:
+def analyze_row(
+    record: RowRecord, url_col: str, config: Config, ps_client=None
+) -> RowResult:
     """Bewertet eine Zeile über alle sechs Dimensionen — netz-robust, wirft nie.
 
     Ablauf: URL normalisieren -> leer? Bedarf 5 'keine Website' OHNE Netz; sonst
     fetch (wirft nie) -> HTML EINMAL parsen -> die geteilte soup an Dim 1/4/5/6,
-    Dim 2 aus dem FetchResult, Dim 3 Platzhalter. Die sechs Verdicts -> scoring.bedarf
+    Dim 2 aus dem FetchResult, Dim 3 performance.analyze (viewport-Heuristik +
+    optionale PageSpeed-Verfeinerung). Die sechs Verdicts -> scoring.bedarf
     (dead -> 5, sonst G/S-Bänder) und reasons.build (Begründung). `zahl` ist die echte
     payment.estimate-Schätzung — auch auf dem leere-URL- und dem Exception-Pfad
     (aus Name/Branche, netzlos). Die Bedarf-Logik ist UNVERÄNDERT. Alles in einer
     Per-Row-Boundary (AC4/ROB-03): eine kaputte Zeile killt den Lauf nicht.
+
+    `ps_client` (Keyword, Default None) ist der pro Lauf EINMAL gebaute, geteilte
+    PageSpeed-Client (oder None ohne Key/--no-pagespeed). Der Default None hält
+    Direkt-Aufrufe (Tests) rückwärtskompatibel: ohne Client -> ps_result None ->
+    Dim 3 fällt auf die viewport-Heuristik zurück (byte-identisch zu Phase 5).
     """
     try:
         raw = record.cells.get(url_col)
@@ -50,10 +60,17 @@ def analyze_row(record: RowRecord, url_col: str, config: Config) -> RowResult:
         # Bei unlesbarem Body (None) bleiben Dim 4/5/6 neutral (0 Gap-Punkte) ->
         # ein 403/Block kippt NICHT auf Bedarf 5 (Invariante by construction).
         soup = BeautifulSoup(fr.html, "html.parser") if fr.html else None
+        # Dim 3 (Mobile & Performance): PSI nur ANFRAGEN, wenn ein Client da ist,
+        # er verfügbar ist (Key + Budget) UND der Fetch nutzbar war (T-06-12: tote/
+        # blockierte Zeilen treiben kein Budget). Sonst ps_result None -> Heuristik.
+        # score() wirft NIE (Client-Vertrag) -> kein extra try/except nötig.
+        ps_result = None
+        if ps_client is not None and ps_client.is_available() and fr.ok and fr.html:
+            ps_result = ps_client.score(fr.final_url or fr.url)
         verdicts = [
             existence.analyze(fr, soup),             # Dim 1 (kann dead setzen)
             technical.analyze(fr),                   # Dim 2 (auch ohne Body messbar)
-            scoring.DIM3_PLACEHOLDER,                # Dim 3 (fix ok, Phase 6)
+            performance.analyze(fr, soup, ps_result),  # Dim 3 (viewport + optional PSI)
             seo.analyze(fr, soup),                   # Dim 4 (neutral wenn soup None)
             ai_readiness.analyze(soup),              # Dim 5 (neutral wenn soup None)
             content.analyze(fr, soup),               # Dim 6 (neutral wenn soup None)
@@ -85,6 +102,11 @@ def run(config: Config) -> dict:
     if config.limit is not None:
         records = records[: config.limit]
 
+    # SINGLE-CLIENT-INVARIANTE (PERF-02/AC8): GENAU EINEN PSI-Client pro Lauf bauen —
+    # nie pro Zeile. Die eine Instanz teilt Semaphore + Budget über alle Worker-Threads.
+    # from_config liefert None ohne use_pagespeed/Key -> Offline-Lauf bleibt byte-identisch.
+    ps_client = PageSpeedClient.from_config(config)
+
     # PERF-03: I/O-bound fan-out über Threads. Jeder Future schreibt GENAU einen
     # festen Index (futs[fut]) -> keine geteilte mutable Stelle (T-05-05). analyze_row
     # wirft NIE (eigene Boundary), darum kann fut.result() nicht re-raisen (T-05-06).
@@ -93,7 +115,7 @@ def run(config: Config) -> dict:
     results: list[RowResult | None] = [None] * len(records)
     workers = max(1, getattr(config, "workers", 8))
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        futs = {pool.submit(analyze_row, r, url_col, config): i
+        futs = {pool.submit(analyze_row, r, url_col, config, ps_client): i
                 for i, r in enumerate(records)}
         for fut in as_completed(futs):
             i = futs[fut]

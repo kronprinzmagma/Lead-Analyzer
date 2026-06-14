@@ -63,6 +63,83 @@ def test_no_pagespeed_flag(monkeypatch, tmp_path):
     assert dim3.level == "ok"
 
 
+# --------------------------------------------------------------------------- #
+# Offline-Byte-Identität: kein Key -> Output == Phase-5-Platzhalter-Baseline   #
+# (für viewport-PRÄSENTE Zeilen), unabhängig von der Worker-Zahl (BED-08/AC1)  #
+# --------------------------------------------------------------------------- #
+
+# Mehrzeiliges Fixture, jede Zeile mit viewport-meta (Dim 3 -> ok = 0 Gap-Punkte,
+# identisch zum alten scoring.DIM3_PLACEHOLDER). Verschiedene Qualitätsstufen,
+# damit die Byte-Gleichheit über mehrere Bedarf-Bänder geprüft wird.
+def _vp_html(title="T", body_words=80, *, https=True):
+    return (
+        '<html lang="de"><head>'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        f"<title>{title}</title></head><body>"
+        + ("Inhalt mit Substanz. " * body_words)
+        + "</body></html>"
+    )
+
+
+def _run_to_bytes(monkeypatch, tmp_path, workers, dim3_override=None):
+    """Führt run() über ein viewport-präsentes 3-Zeilen-CSV aus und gibt die
+    Output-Bytes zurück. `dim3_override` ersetzt performance.analyze (Baseline:
+    der alte scoring.DIM3_PLACEHOLDER) -> erlaubt den Byte-Vergleich gegen Phase 5.
+    """
+    from lead_analyzer.analyzers import performance as perf_mod
+
+    # Jede der drei URLs bekommt ihre eigene viewport-präsente Seite (deterministisch).
+    pages = {
+        "https://a.ch": _vp_html("A", 80),
+        "https://b.ch": _vp_html("B", 5),     # dünner Inhalt -> andere Bänder
+        "https://c.ch": _vp_html("C", 200),
+    }
+
+    def fake_fetch(candidates, cfg):
+        # candidates ist eine Liste normalisierter URL-Varianten; nimm die erste,
+        # die wir kennen (sonst Default). final_url == url (kein Redirect).
+        for cand in candidates:
+            base = cand.rstrip("/")
+            if base in pages:
+                return make_fetch_result(html=pages[base], url=cand, final_url=cand)
+        return make_fetch_result(html=_vp_html(), url=candidates[0], final_url=candidates[0])
+
+    monkeypatch.setattr(fetch, "fetch", fake_fetch)
+    if dim3_override is not None:
+        monkeypatch.setattr(perf_mod, "analyze", dim3_override)
+
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    inp = tmp_path / "in.csv"
+    inp.write_text("Website\nhttps://a.ch\nhttps://b.ch\nhttps://c.ch\n", encoding="utf-8")
+    out = tmp_path / f"out_{workers}.csv"
+    # Kein PAGESPEED_API_KEY -> from_config None -> ps_result überall None (Offline-Default).
+    monkeypatch.delenv("PAGESPEED_API_KEY", raising=False)
+    from lead_analyzer import pipeline
+    pipeline.run(Config(input=str(inp), output=str(out), write_csv=True, workers=workers))
+    return out.read_bytes()
+
+
+def test_offline_output_byte_identical_to_placeholder(monkeypatch, tmp_path):
+    """BED-08/AC1: ohne Key ist die Ausgabe für viewport-PRÄSENTE Zeilen byte-identisch
+    zur Phase-5-Platzhalter-Baseline — und unabhängig von der Worker-Zahl.
+
+    Baseline = run() mit performance.analyze, das den alten scoring.DIM3_PLACEHOLDER
+    zurückgibt (Phase-5-Verhalten). Real = run() mit dem echten Offline-Analyzer
+    (ps_result None -> viewport-Heuristik). Für viewport-präsente Seiten liefert beides
+    Dim 3 = ok (0 Gap-Punkte) -> identischer Bedarf -> byte-gleiche Datei.
+    """
+    baseline = _run_to_bytes(
+        monkeypatch, tmp_path / "base", workers=1,
+        dim3_override=lambda fr, soup, ps_result=None: scoring.DIM3_PLACEHOLDER,
+    )
+    # Echter Offline-Pfad, gleiche Worker-Zahl -> muss byte-gleich sein.
+    real_w1 = _run_to_bytes(monkeypatch, tmp_path / "real1", workers=1)
+    assert real_w1 == baseline
+    # Worker-Variation (8) darf den Output NICHT verändern (stabiler Sort, AC1).
+    real_w8 = _run_to_bytes(monkeypatch, tmp_path / "real8", workers=8)
+    assert real_w8 == baseline
+
+
 def test_one_client_per_run(monkeypatch, tmp_path):
     """Single-Client-Invariante (PERF-02/AC8): run() baut GENAU EINEN PSI-Client für den
     ganzen Lauf — nicht einen pro Zeile. Schützt die per-run geteilte Semaphore + das
@@ -98,11 +175,13 @@ def _rec(url, name="", branche=""):
 
 
 # Modernes Fixture: erfüllt ALLE sechs Dimensionen -> Bedarf 1.
-# https + eigene Domain (Dim2 ok); lang+title+meta-desc+canonical+1 H1 (Dim4 ok);
+# https + eigene Domain (Dim2 ok); viewport-meta (Dim3 ok, BED-03: ab Phase 6 wird
+# Dim 3 real gemessen statt Platzhalter); lang+title+meta-desc+canonical+1 H1 (Dim4 ok);
 # JSON-LD business + 3 OG (Dim5 ok); Formular+tel+mailto+Impressum+aktuelles
 # Copyright (Dim6 ok); >300 Wörter Inhalt (Dim1 ok).
 _MODERN_HTML = (
     '<html lang="de"><head>'
+    '<meta name="viewport" content="width=device-width, initial-scale=1">'
     '<title>Beispiel Firma — Schreinerei in Bern</title>'
     '<meta name="description" content="Wir sind eine moderne Schreinerei in Bern '
     'mit langjähriger Erfahrung und bieten massgefertigte Möbel sowie Innenausbau.">'
@@ -145,9 +224,11 @@ def test_six_verdicts_wired(monkeypatch):
     res = analyze_row(_rec("https://ok.ch"), _URL_COL, _CFG)
     assert len(res.verdicts) == 6
     assert {v.dim for v in res.verdicts} == {1, 2, 3, 4, 5, 6}
-    # Dim 3 ist der Platzhalter (level ok).
+    # Dim 3 ist ab Phase 6 der echte Performance-Befund (kein Platzhalter mehr).
+    # BED-03: das Default-Fixture (make_fetch_result) hat KEIN viewport-meta
+    # (grep 'meta name="viewport"' -> 0) -> Heuristik liefert korrekt 'gap'.
     dim3 = next(v for v in res.verdicts if v.dim == 3)
-    assert dim3.level == "ok"
+    assert dim3.level == "gap"
 
 
 # --------------------------------------------------------------------------- #
@@ -204,10 +285,13 @@ def test_empty_url_is_5_no_network(monkeypatch):
 # --------------------------------------------------------------------------- #
 
 def test_block_403_no_body_is_not_5_and_is_2(monkeypatch):
-    """Clean-https-WAF-Block (403, kein Body) -> Bedarf 2, niemals 5.
+    """Clean-https-WAF-Block (403, kein Body) -> Bedarf 3, niemals 5.
 
-    Dim1=gap (blockiert), Dim2=ok (https eigene Domain), Dim3=ok, Dim4/5/6=neutral
-    -> G=1, S=0 -> Band 2. Die !=5-Invariante ist der load-bearing Teil.
+    Dim1=gap (blockiert), Dim2=ok (https eigene Domain), Dim3=gap, Dim4/5/6=neutral
+    -> G=2, S=0 -> Band 3. Die !=5-Invariante ist der load-bearing Teil.
+    BED-03: ohne Body (html=None) gibt es KEIN viewport-meta (soup None) -> die
+    Dim-3-Heuristik liefert korrekt 'gap' (Mobil-Tauglichkeit nicht nachweisbar),
+    statt des alten Platzhalter-'ok'. Scoring-Bänder unverändert.
     """
     monkeypatch.setattr(
         fetch, "fetch",
@@ -217,7 +301,7 @@ def test_block_403_no_body_is_not_5_and_is_2(monkeypatch):
     )
     res = analyze_row(_rec("https://waf.ch"), _URL_COL, _CFG)
     assert res.bedarf != 5
-    assert res.bedarf == 2
+    assert res.bedarf == 3
     assert "blockiert" in res.reason
 
 
