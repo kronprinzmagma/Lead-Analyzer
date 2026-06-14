@@ -16,7 +16,7 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 ### BED — Website-Bedarf-Score (6 Dimensionen)
 - [x] **BED-01**: Dimension 1 *Existenz & Substanz* wird real gemessen: erreichbar (HTTP 200 nach http/https- und www-Varianten-Probe), geparkt/Platzhalter, Social-Media-only, leerer Inhalt. *(AC11, AC3)*
 - [x] **BED-02**: Dimension 2 *Technische Basis* wird real gemessen: HTTPS + gültiges SSL-Zertifikat; eigene Domain vs. Gratis-Subdomain (wixsite, jimdosite, business.site, …). *(AC11, AC3)*
-- [ ] **BED-03**: Dimension 3 *Mobile & Performance* wird gemessen: Viewport-Meta (immer) + PageSpeed/Lighthouse-Performance wenn verfügbar; sonst heuristischer Fallback mit Vermerk. *(AC11, AC8)*
+- [x] **BED-03**: Dimension 3 *Mobile & Performance* wird gemessen: Viewport-Meta (immer) + PageSpeed/Lighthouse-Performance wenn verfügbar; sonst heuristischer Fallback mit Vermerk. *(AC11, AC8)*
 - [x] **BED-04**: Dimension 4 *Auffindbarkeit (SEO)* wird real gemessen: Title/Meta-Description (Vorhandensein+Länge), Canonical, robots.txt/sitemap.xml, H1, noindex. *(AC11, AC3)*
 - [x] **BED-05**: Dimension 5 *KI-/Answer-Engine-Bereitschaft* wird mind. heuristisch gemessen: JSON-LD/Schema.org, Open-Graph-Tags, Microdata. *(AC11)*
 - [x] **BED-06**: Dimension 6 *Inhalt, Aktualität & Conversion* wird mind. heuristisch gemessen: Kontaktformular, `tel:`/`mailto:`, Impressum, Copyright-Jahr/Generator als Aktualitäts-Proxy. *(AC11)*
@@ -84,7 +84,7 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 | ZK-03 | Phase 4 | Pending |
 | PERF-01 | Phase 5 | Complete |
 | PERF-03 | Phase 5 | Complete |
-| BED-03 | Phase 6 | Pending |
+| BED-03 | Phase 6 | Complete |
 | PERF-02 | Phase 6 | Pending |
 | SETUP-01 | Phase 7 | Pending |
 | SETUP-02 | Phase 7 | Pending |
