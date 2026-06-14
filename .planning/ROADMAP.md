@@ -75,9 +75,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Every estimate is labelled as an estimate with its driving signals/assumptions recorded (reason column and/or log); thin data falls back to a conservative score with no invented facts (AC5, AC6).
   3. Score direction is correct: higher = more purchasing power (AC3).
 **Plans**: 3 plans
-  - [ ] 04-01-PLAN.md — RED: PaymentEstimate dataclass + full failing test matrix (groups A/B/C, combine, conservative default, Pitfall-16 misfire, direction, range)
-  - [ ] 04-02-PLAN.md — GREEN: analyzers/payment.py (legal form + branch tier + size signals → 1-5, conservative default)
-  - [ ] 04-03-PLAN.md — WIRE: reasons.build(payment) per-section cap + analyze_row real zahl on all three paths
+  - [x] 04-01-PLAN.md — RED: PaymentEstimate dataclass + full failing test matrix (groups A/B/C, combine, conservative default, Pitfall-16 misfire, direction, range)
+  - [x] 04-02-PLAN.md — GREEN: analyzers/payment.py (legal form + branch tier + size signals → 1-5, conservative default)
+  - [x] 04-03-PLAN.md — WIRE: reasons.build(payment) per-section cap + analyze_row real zahl on all three paths
 
 ### Phase 5: Cache + Concurrency
 **Goal**: Runs are resumable and fast enough for hundreds of rows via a per-URL cache and threaded fetch.
@@ -119,10 +119,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `.env` and outputs are gitignored and the tool works locally without leaking firm/personal data (CLAUDE.md §6).
 **Plans**: 5 plans
 - [x] 07-01-PLAN.md — README.md: setup <5min, one command, all CLI flags, .env/no-keys, scores + 6 dimensions (SETUP-01)
-- [ ] 07-02-PLAN.md — docs/sample_run_rationale.md: full 42-row distribution + AC10 rationale (edge cases + big-vs-small firm) (SETUP-02)
-- [ ] 07-03-PLAN.md — Privacy/scope hardening: gitignore audit + .env.example as only committed env file (SETUP-03)
-- [ ] 07-04-PLAN.md — Verification: full suite (202) + reproducible no-key full run + Definition-of-Done sign-off
-- [ ] 07-05-PLAN.md — Planning-state cleanup (REQUIREMENTS/ROADMAP traceability) + optional unreachable-reason dedup
+- [x] 07-02-PLAN.md — docs/sample_run_rationale.md: full 42-row distribution + AC10 rationale (edge cases + big-vs-small firm) (SETUP-02)
+- [x] 07-03-PLAN.md — Privacy/scope hardening: gitignore audit + .env.example as only committed env file (SETUP-03)
+- [x] 07-04-PLAN.md — Verification: full suite (202) + reproducible no-key full run + Definition-of-Done sign-off
+- [x] 07-05-PLAN.md — Planning-state cleanup (REQUIREMENTS/ROADMAP traceability) + optional unreachable-reason dedup
 
 ## Progress
 
@@ -131,10 +131,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. E2E Skeleton + Excel I/O | 0/TBD | Not started | - |
-| 2. Fetch + Existence + Robustness | 0/2 | Not started | - |
-| 3. Real Website-Bedarf Score | 0/4 | Not started | - |
-| 4. Zahlungskräftigkeit Estimator | 0/3 | Not started | - |
-| 5. Cache + Concurrency | 2/2 | Complete   | 2026-06-14 |
-| 6. Optional PageSpeed + Rate Limiting | 0/TBD | Not started | - |
-| 7. Hardening + README + Full Sample Run | 0/4 | Not started | - |
+| 1. E2E Skeleton + Excel I/O | 1/1 | Complete | 2026-06-14 |
+| 2. Fetch + Existence + Robustness | 2/2 | Complete | 2026-06-14 |
+| 3. Real Website-Bedarf Score | 4/4 | Complete | 2026-06-14 |
+| 4. Zahlungskräftigkeit Estimator | 3/3 | Complete | 2026-06-14 |
+| 5. Cache + Concurrency | 2/2 | Complete | 2026-06-14 |
+| 6. Optional PageSpeed + Rate Limiting | 5/5 | Complete | 2026-06-14 |
+| 7. Hardening + README + Full Sample Run | 5/5 | Complete | 2026-06-14 |
