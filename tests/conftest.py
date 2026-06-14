@@ -86,6 +86,27 @@ def make_fetch_result(**overrides) -> FetchResult:
     return FetchResult(**defaults)
 
 
+def make_ps_result(**overrides):
+    """Baut ein `PsResult` mit gesunden Defaults (spiegelt make_fetch_result).
+
+    Lazy-Import von `lead_analyzer.models.PsResult` INNERHALB der Funktion, damit
+    die Test-Collection in der RED-Phase überlebt, solange PsResult noch nicht
+    existiert (Wave 0). Jedes Feld ist per Keyword überschreibbar, z.B.
+    `make_ps_result(perf_score=0.30)`.
+    """
+    from lead_analyzer.models import PsResult  # lazy: toleriert RED-Phase
+
+    defaults: dict[str, object] = dict(
+        perf_score=0.95,   # 0..1, gute Lighthouse-Performance
+        lcp_ms=2000,       # Largest Contentful Paint (ms) — gut (<2500)
+        cls=0.05,          # Cumulative Layout Shift — gut (<0.10)
+        tbt_ms=100,        # Total Blocking Time (ms) — gut (<200)
+        ok=True,
+    )
+    defaults.update(overrides)
+    return PsResult(**defaults)
+
+
 class FakeResponse:
     """Winziges Imitat von `requests.Response` für `fetch()`-Tests (Plan 02-02).
 
