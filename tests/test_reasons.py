@@ -9,7 +9,7 @@ auseinander, T-03-07).
 from __future__ import annotations
 
 from lead_analyzer import reasons, scoring
-from lead_analyzer.models import DimensionVerdict
+from lead_analyzer.models import DimensionVerdict, PaymentEstimate
 
 
 def vs(*levels: str) -> list[DimensionVerdict]:
@@ -70,3 +70,39 @@ def test_bedarf_number_matches_scoring_two_cases():
     case_b = vs("severe", "severe", "severe", "ok", "ok", "ok")  # -> 5
     assert f"Bedarf {scoring.bedarf(case_a)}" in reasons.build(case_a)
     assert f"Bedarf {scoring.bedarf(case_b)}" in reasons.build(case_b)
+
+
+# --------------------------------------------------------------------------- #
+# Phase 4: optionale Zahlungskräftigkeit-Sektion + Per-Sektion-Cap            #
+# --------------------------------------------------------------------------- #
+
+def test_build_with_payment():
+    """build(verdicts, payment) trägt BEIDE Rationale, verbunden mit ' | '."""
+    verdicts = vs("gap", "gap", "ok", "ok", "ok", "ok")
+    pay = PaymentEstimate(4, "Zahl (Schätzung): Rechtsform AG aus Firmenname angenommen")
+    out = reasons.build(verdicts, payment=pay)
+    assert f"Bedarf {scoring.bedarf(verdicts)}" in out
+    assert "Zahl (Schätzung): Rechtsform AG" in out
+    assert " | " in out
+
+
+def test_build_without_payment_unchanged():
+    """payment=None -> byte-für-byte wie heute (back-compat); kein 'Zahl'-Text."""
+    verdicts = vs("gap", "gap", "ok", "ok", "ok", "ok")
+    assert reasons.build(verdicts) == reasons.build(verdicts, None)
+    assert "Zahl" not in reasons.build(verdicts)
+
+
+def test_payment_section_not_truncated():
+    """Per-Sektion-Cap: langer Bedarf-Body UND lange zahl-reason -> beide überleben."""
+    verdicts = [
+        DimensionVerdict(i + 1, "severe", "ein ziemlich langer Befundtext der die Begründung aufbläht " * 2)
+        for i in range(6)
+    ]
+    pay = PaymentEstimate(
+        5,
+        "Zahl (Schätzung): " + ("Rechtsform AG angenommen; Branchen-Tier hoch; mehrere Standorte; " * 5),
+    )
+    out = reasons.build(verdicts, payment=pay)
+    assert "Zahl (Schätzung):" in out   # zahl-Prefix nicht weggekappt
+    assert "Bedarf" in out              # Bedarf-Summary überlebt
