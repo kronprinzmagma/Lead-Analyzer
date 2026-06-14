@@ -7,7 +7,7 @@ oder verwürfelt und die Original-Zellen 1:1 ausgegeben werden.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 
 
 @dataclass
@@ -68,3 +68,28 @@ class FetchResult:
     headers: dict                  # Response-Header (für Phase-3-Dimensionen)
     html: str | None               # dekodierter, grössenbegrenzter Body; None falls unerreichbar
     error: str | None              # Notiz-String bei Fehler; None bei Erfolg
+
+    def to_dict(self) -> dict:
+        """Serialisiert verlustfrei für den Cache (alle Felder sind JSON-nativ).
+
+        `asdict` ist hier exakt und wartungsfrei — headers ist ein plain dict,
+        alle übrigen Felder str/bool/int/None. Gecacht wird das ROHE FetchResult,
+        nicht die Scores (Phase-6-Scoring-Änderungen erzwingen so keinen Re-Crawl).
+        """
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "FetchResult":
+        """Rekonstruiert aus einem Cache-dict. Defensiv: fehlende Keys tolerieren,
+        damit ein schema-Bump nie KeyError wirft (AC4)."""
+        return cls(
+            url=d.get("url", ""),
+            ok=d.get("ok", False),
+            status=d.get("status"),
+            final_url=d.get("final_url"),
+            redirected=d.get("redirected", False),
+            ssl_ok=d.get("ssl_ok", False),
+            headers=d.get("headers", {}),
+            html=d.get("html"),
+            error=d.get("error"),
+        )
