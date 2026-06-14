@@ -27,6 +27,72 @@ _CFG = Config(input="x", output="y")
 _URL_COL = "Website"
 
 
+# --------------------------------------------------------------------------- #
+# Phase 6 RED-Scaffolds (Wave 0): --no-pagespeed-Pfad + Single-Client-Invariante
+# Beide referenzieren noch nicht verdrahtete Phase-6-Produktion -> RED bis 06-04/06-05.
+# --------------------------------------------------------------------------- #
+
+
+def test_no_pagespeed_flag(monkeypatch, tmp_path):
+    """Config(use_pagespeed=False) -> kein PSI-Client; Bedarf identisch zum Platzhalter.
+
+    Für eine viewport-präsente, erreichbare Seite muss der Bedarf mit abgeschaltetem
+    PageSpeed exakt dem heutigen Platzhalter-Resultat entsprechen (byte-identische
+    Offline-Garantie, BED-08). RED jetzt: der Heuristik-Analyzer (Dim 3) existiert noch
+    nicht, der Pfad ist noch nicht verdrahtet.
+    """
+    from lead_analyzer.clients.pagespeed import PageSpeedClient  # RED bis 06-04
+
+    # Bei use_pagespeed=False darf from_config keinen Client liefern.
+    assert PageSpeedClient.from_config(Config(input="x", output="y", use_pagespeed=False)) is None
+
+    html = (
+        '<html><head><meta name="viewport" content="width=device-width">'
+        "<title>X</title></head><body>"
+        + ("Inhalt mit Substanz. " * 80)
+        + "</body></html>"
+    )
+    monkeypatch.setattr(
+        fetch, "fetch",
+        lambda c, cfg: make_fetch_result(html=html, url="https://vp.ch/", final_url="https://vp.ch/"),
+    )
+    cfg_off = Config(input="x", output="y", use_pagespeed=False)
+    res = analyze_row(_rec("https://vp.ch"), _URL_COL, cfg_off)
+    # Heuristik (viewport vorhanden, ps_result None) -> Dim 3 ok -> Bedarf unverändert.
+    dim3 = next(v for v in res.verdicts if v.dim == 3)
+    assert dim3.level == "ok"
+
+
+def test_one_client_per_run(monkeypatch, tmp_path):
+    """Single-Client-Invariante (PERF-02/AC8): run() baut GENAU EINEN PSI-Client für den
+    ganzen Lauf — nicht einen pro Zeile. Schützt die per-run geteilte Semaphore + das
+    Budget gegen einen späteren Per-Row-Refactor. RED jetzt: run() baut noch keinen Client.
+    """
+    from lead_analyzer import pipeline
+    from lead_analyzer.clients.pagespeed import PageSpeedClient  # RED bis 06-04
+
+    calls = {"from_config": 0}
+    orig = PageSpeedClient.from_config
+
+    def counting_from_config(config):
+        calls["from_config"] += 1
+        return orig(config)
+
+    monkeypatch.setattr(PageSpeedClient, "from_config", staticmethod(counting_from_config))
+
+    # Multi-Row-Input (>=3 Zeilen) als CSV.
+    inp = tmp_path / "in.csv"
+    inp.write_text(
+        "Website\nhttps://a.ch\nhttps://b.ch\nhttps://c.ch\n", encoding="utf-8"
+    )
+    out = tmp_path / "out.csv"
+    monkeypatch.setattr(fetch, "fetch", lambda c, cfg: make_fetch_result())
+
+    pipeline.run(Config(input=str(inp), output=str(out), write_csv=True, workers=1))
+
+    assert calls["from_config"] == 1   # GENAU einmal für den ganzen Lauf
+
+
 def _rec(url, name="", branche=""):
     return RowRecord(index=0, cells={_URL_COL: url, "Kundenname": name, "Branche": branche})
 
