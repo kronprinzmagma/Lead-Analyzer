@@ -125,3 +125,30 @@ def test_no_html_is_neutral_not_severe():
     assert v.source == "n/a"        # unterscheidet Neutral von echtem ok
     low = v.reason.lower()
     assert "nicht bewertbar" in low or "kein html" in low
+
+
+# ---------- Review-Fix H1: @type als dict/Liste-mit-dict darf NICHT crashen ----------
+
+def test_jsonld_type_as_dict_does_not_crash():
+    """Gültiges JSON-LD mit @type als dict (oder Liste mit dict) -> kein TypeError.
+
+    set.update() würde an einem dict mit 'unhashable type' scheitern; nur hashbare
+    Strings dürfen aufgenommen werden. (Code-Review H1)
+    """
+    from lead_analyzer.analyzers import ai_readiness
+    from bs4 import BeautifulSoup
+
+    html = (
+        '<html><head>'
+        '<script type="application/ld+json">{"@type": {"x": 1}}</script>'
+        '<script type="application/ld+json">{"@type": ["Organization", {"nested": true}]}</script>'
+        '<meta property="og:title" content="X">'
+        '</head><body>Inhalt</body></html>'
+    )
+    soup = BeautifulSoup(html, "html.parser")
+    v = ai_readiness.analyze(soup)            # darf NICHT raisen (vorher TypeError)
+    assert v.dim == 5
+    assert v.level in ("ok", "gap", "severe")
+    # Der hashbare String-Typ "Organization" wurde intern erfasst (kein severe,
+    # da strukturiertes Markup teilweise vorhanden ist).
+    assert v.level != "severe"

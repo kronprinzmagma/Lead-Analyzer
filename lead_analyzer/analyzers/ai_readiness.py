@@ -50,7 +50,12 @@ def analyze(soup) -> DimensionVerdict:
         for obj in (data if isinstance(data, list) else [data]):
             if isinstance(obj, dict) and obj.get("@type"):
                 t = obj["@type"]
-                types.update(t if isinstance(t, list) else [t])
+                # @type kann String, Liste — oder (selten, aber gültiges JSON) ein
+                # dict / eine Liste mit dicts sein. Nur hashbare Strings aufnehmen,
+                # sonst würde set.update() mit 'unhashable type: dict' crashen.
+                for one in (t if isinstance(t, list) else [t]):
+                    if isinstance(one, str):
+                        types.add(one)
 
     # 2) Open Graph: og:*-Meta-Tags.
     og = soup.find_all("meta", property=re.compile(r"^og:", re.I))
@@ -68,6 +73,8 @@ def analyze(soup) -> DimensionVerdict:
     missing: list[str] = []
     if not types:
         missing.append("kein JSON-LD")
+    elif len(og) == 0:
+        missing.append("kein Open Graph")
     elif len(og) < 3:
         missing.append("zu wenig Open Graph")
     if not og and not microdata:
