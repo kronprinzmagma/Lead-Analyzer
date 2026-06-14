@@ -102,7 +102,9 @@ def test_dead_unreachable_is_bedarf_5(monkeypatch):
     )
     res = analyze_row(_rec("htp://naehatelier-sutter"), _URL_COL, _CFG)
     assert res.bedarf == 5
-    assert res.reason.startswith("nicht erreichbar")
+    # res.reason kommt jetzt aus reasons.build ("Dim1 … (nicht erreichbar …) →
+    # Bedarf 5") -> Substring statt startswith (reconciled in 03-04).
+    assert "nicht erreichbar" in res.reason
     assert res.verdicts and res.verdicts[0].dim == 1
 
 
@@ -117,13 +119,19 @@ def test_parked_is_bedarf_5(monkeypatch):
 
 
 def test_block_403_is_neutral_not_5(monkeypatch):
+    # Clean-https-WAF-Block: Dim1 gap + Dim2 ok + Dim4/5/6 neutral -> G=1 -> Band 2.
+    # !=5 ist die load-bearing Invariante; ==2 ist der dokumentierte 6-Dim-Wert
+    # (war provisorisch 3 unter dem reinen Dim-1-Pfad) — identisch in
+    # test_pipeline_bedarf.py.
     monkeypatch.setattr(
         fetch, "fetch",
-        lambda c, cfg: make_fetch_result(ok=False, status=403, html=None),
+        lambda c, cfg: make_fetch_result(
+            ok=False, status=403, html=None,
+            url="https://waf.ch/", final_url="https://waf.ch/", ssl_ok=True),
     )
     res = analyze_row(_rec("https://waf.ch"), _URL_COL, _CFG)
     assert res.bedarf != 5
-    assert res.bedarf == 3
+    assert res.bedarf == 2
     assert "blockiert" in res.reason
 
 
@@ -138,13 +146,16 @@ def test_social_only_high_but_not_5(monkeypatch):
     assert res.bedarf == 4  # severe-not-dead
 
 
-def test_reachable_thin_is_3(monkeypatch):
+def test_reachable_thin_is_4(monkeypatch):
     monkeypatch.setattr(
         fetch, "fetch",
         lambda c, cfg: make_fetch_result(html="<html><body>kurz</body></html>"),
     )
     res = analyze_row(_rec("https://thin.ch"), _URL_COL, _CFG)
-    assert res.bedarf == 3
+    # 6-Dim reconciled (war provisorisch 3 unter reinem Dim-1-Pfad): dünner Inhalt
+    # (Dim1 gap) + fehlender Title/Meta/H1 (Dim4 gap) + kein Markup (Dim5 severe)
+    # + fehlender Kontakt/Impressum (Dim6 gap) -> Bedarf 4.
+    assert res.bedarf == 4
 
 
 def test_zahl_stays_placeholder(monkeypatch):

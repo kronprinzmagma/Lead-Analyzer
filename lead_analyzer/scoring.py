@@ -50,6 +50,8 @@ def clamp_score(value: int) -> int:
 def bedarf_from_dim1(verdict: DimensionVerdict) -> int:
     """Provisorische Bedarf-Ableitung aus dem Dimension-1-Befund (Phase 2).
 
+    # deprecated: superseded by bedarf(); kept for Phase-2 unit tests.
+
     - `dead`-Flag (keine/defekte/geparkte Website) -> 5 (Override: höchster Bedarf,
       CLAUDE.md §3). Das Flag wird in existence.analyze gesetzt — die Score-Richtung
       hängt damit NICHT am Anzeige-Text (AC3 robust gegen Text-Edits).
