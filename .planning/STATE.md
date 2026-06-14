@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 02-02-PLAN.md (fetch() seam + Dim-1 analyze_row wiring); 61 tests green.
-last_updated: "2026-06-14T14:13:08.065Z"
-last_activity: "2026-06-14 — Phase 2 Plan 02 shipped: never-raising fetch() + real analyze_row (normalize→fetch→existence→dead→5, per-row boundary); offline sample-integration proves Kiosk + Nähatelier rows = Bedarf 5."
+stopped_at: Completed 03-04-PLAN.md (6-Dim Bedarf pipeline wiring, parse-once); 134 tests green.
+last_updated: "2026-06-14T14:19:57.789Z"
+last_activity: "2026-06-14 — Phase 3 Plan 04 shipped: analyze_row verdrahtet alle 6 Bedarf-Dimensionen (parse-once), Begründung via reasons.build, 403!=5 by construction; live sample 42 Zeilen verteilt über 1–5; 134 tests green."
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 
 ## Current Position
 
-Phase: 2 of 7 (Fetch + Existence + Robustness) — plans 02-01 + 02-02 executed
-Plan: Phase 2 plans complete (02-01 offline core + 02-02 fetch seam & Dim-1 wiring); 61 tests green + committed
-Status: Phase 2 execution done; ready for /gsd-verify-work.
-Last activity: 2026-06-14 — Phase 2 Plan 02 shipped: never-raising fetch() + real analyze_row (normalize→fetch→existence→dead→5, per-row boundary); offline sample-integration proves Kiosk + Nähatelier rows = Bedarf 5.
+Phase: 3 of 7 (Real Website-Bedarf Score) — plans 03-01/02/03/04 executed
+Plan: Phase 3 plans complete (analyzers + scoring.bedarf + full 6-Dim pipeline wiring, parse-once); 134 tests green + committed
+Status: Phase 3 execution done; ready for /gsd-verify-work.
+Last activity: 2026-06-14 — Phase 3 Plan 04 shipped: 6-Dim Bedarf in analyze_row (parse-once), Begründung via reasons.build, 403!=5 by construction; live sample 42 Zeilen über 1–5; 134 tests green.
 
-Progress: [████████░░] 83%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [████████░░] 83%
 | Phase 02 P01 | 1 | 3 tasks | 7 files |
 | Phase 02 P02 | ~14m | 3 tasks | 4 files |
 | Phase 03 P03 | 8min | 4 tasks | 4 files |
+| Phase 03 P04 | 4min | 4 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-14T13:35:07.920Z
+Last session: 2026-06-14T14:19:57.784Z
 Stopped at: Completed 02-02-PLAN.md (fetch() seam + Dim-1 analyze_row wiring); 61 tests green.
 Resume file: None

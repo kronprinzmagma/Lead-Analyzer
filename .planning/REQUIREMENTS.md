@@ -15,9 +15,9 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 
 ### BED — Website-Bedarf-Score (6 Dimensionen)
 - [x] **BED-01**: Dimension 1 *Existenz & Substanz* wird real gemessen: erreichbar (HTTP 200 nach http/https- und www-Varianten-Probe), geparkt/Platzhalter, Social-Media-only, leerer Inhalt. *(AC11, AC3)*
-- [ ] **BED-02**: Dimension 2 *Technische Basis* wird real gemessen: HTTPS + gültiges SSL-Zertifikat; eigene Domain vs. Gratis-Subdomain (wixsite, jimdosite, business.site, …). *(AC11, AC3)*
+- [x] **BED-02**: Dimension 2 *Technische Basis* wird real gemessen: HTTPS + gültiges SSL-Zertifikat; eigene Domain vs. Gratis-Subdomain (wixsite, jimdosite, business.site, …). *(AC11, AC3)*
 - [ ] **BED-03**: Dimension 3 *Mobile & Performance* wird gemessen: Viewport-Meta (immer) + PageSpeed/Lighthouse-Performance wenn verfügbar; sonst heuristischer Fallback mit Vermerk. *(AC11, AC8)*
-- [ ] **BED-04**: Dimension 4 *Auffindbarkeit (SEO)* wird real gemessen: Title/Meta-Description (Vorhandensein+Länge), Canonical, robots.txt/sitemap.xml, H1, noindex. *(AC11, AC3)*
+- [x] **BED-04**: Dimension 4 *Auffindbarkeit (SEO)* wird real gemessen: Title/Meta-Description (Vorhandensein+Länge), Canonical, robots.txt/sitemap.xml, H1, noindex. *(AC11, AC3)*
 - [x] **BED-05**: Dimension 5 *KI-/Answer-Engine-Bereitschaft* wird mind. heuristisch gemessen: JSON-LD/Schema.org, Open-Graph-Tags, Microdata. *(AC11)*
 - [x] **BED-06**: Dimension 6 *Inhalt, Aktualität & Conversion* wird mind. heuristisch gemessen: Kontaktformular, `tel:`/`mailto:`, Impressum, Copyright-Jahr/Generator als Aktualitäts-Proxy. *(AC11)*
 - [x] **BED-07**: Die 6 Dimensions-Befunde werden deterministisch zum 1–5-Score aggregiert gemäss Banddefinition in `docs/scoring_website_bedarf.md`; «keine erreichbare Website» überschreibt immer auf 5. *(AC3, AC11)*
@@ -72,8 +72,8 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 | ROB-01 | Phase 2 | Complete |
 | ROB-02 | Phase 2 | Complete |
 | ROB-03 | Phase 2 | Complete |
-| BED-02 | Phase 3 | Pending |
-| BED-04 | Phase 3 | Pending |
+| BED-02 | Phase 3 | Complete |
+| BED-04 | Phase 3 | Complete |
 | BED-05 | Phase 3 | Complete |
 | BED-06 | Phase 3 | Complete |
 | BED-07 | Phase 3 | Complete |
