@@ -14,6 +14,10 @@ import requests
 import pytest
 
 from lead_analyzer import fetch
+from lead_analyzer.config import Config
+from lead_analyzer.models import FetchResult
+
+from conftest import FakeResponse
 
 
 # ---------- BED-01 / ROB-01: normalize() ----------
@@ -85,3 +89,177 @@ def test_network_block_is_overridable(monkeypatch):
     sentinel = object()
     monkeypatch.setattr(requests.Session, "get", lambda self, *a, **k: sentinel)
     assert requests.Session().get("http://example.com") is sentinel
+
+
+# ---------- ROB-02: fetch() — die einzige Netz-Funktion, wirft nie ----------
+
+_CFG = Config(input="x", output="y")  # timeout_connect=5.0, timeout_read=10.0
+
+
+def _patch_get(monkeypatch, fn):
+    """Überschreibt die conftest-Netz-Sperre gezielt mit `fn` (self, url, **kw)."""
+    monkeypatch.setattr(requests.Session, "get", fn)
+
+
+def test_fetch_clean_200_happy_path(monkeypatch):
+    def fake_get(self, url, **kw):
+        return FakeResponse(
+            status_code=200,
+            url="https://example.ch/",
+            headers={"Content-Type": "text/html"},
+            body="<html><head><title>OK</title></head><body>Hallo</body></html>",
+        )
+
+    _patch_get(monkeypatch, fake_get)
+    fr = fetch.fetch(["https://example.ch/"], _CFG)
+    assert isinstance(fr, FetchResult)
+    assert fr.ok is True
+    assert fr.status == 200
+    assert fr.ssl_ok is True
+    assert fr.final_url == "https://example.ch/"
+    assert fr.error is None
+    assert "Hallo" in fr.html
+
+
+def test_request_shape(monkeypatch):
+    """timeout-Tupel aus config, Browser-UA, de-CH, allow_redirects, stream, max_redirects."""
+    captured = {}
+
+    def fake_get(self, url, **kw):
+        captured["url"] = url
+        captured["kwargs"] = kw
+        captured["max_redirects"] = self.max_redirects
+        captured["headers"] = dict(self.headers)
+        return FakeResponse(status_code=200, url=url)
+
+    _patch_get(monkeypatch, fake_get)
+    fetch.fetch(["https://example.ch/"], _CFG)
+
+    assert captured["kwargs"]["timeout"] == (_CFG.timeout_connect, _CFG.timeout_read)
+    assert captured["kwargs"]["allow_redirects"] is True
+    assert captured["kwargs"]["stream"] is True
+    assert captured["max_redirects"] == 10
+    hdrs = captured["headers"]
+    assert "Mozilla/5.0" in hdrs["User-Agent"]
+    assert hdrs["Accept-Language"].startswith("de-CH")
+    assert "text/html" in hdrs["Accept"]
+
+
+def test_ssl_signal(monkeypatch):
+    """SSLError bei verify=True -> Refetch verify=False, Body lesbar, ssl_ok=False, kein Crash."""
+    calls = []
+
+    def fake_get(self, url, **kw):
+        calls.append(kw.get("verify"))
+        if kw.get("verify") is True:
+            raise requests.exceptions.SSLError("cert invalid")
+        return FakeResponse(status_code=200, url=url, body="<html><body>trotzdem da</body></html>")
+
+    _patch_get(monkeypatch, fake_get)
+    fr = fetch.fetch(["https://example.ch/"], _CFG)
+    assert fr.ssl_ok is False
+    assert fr.ok is True
+    assert "trotzdem da" in fr.html
+    assert calls == [True, False]  # zuerst verify=True, dann Fallback verify=False
+
+
+def test_timeout(monkeypatch):
+    """Timeout auf allen Varianten -> ok=False, html=None, error Timeout-artig, kein Crash."""
+    def fake_get(self, url, **kw):
+        raise requests.exceptions.ReadTimeout("zu langsam")
+
+    _patch_get(monkeypatch, fake_get)
+    fr = fetch.fetch(["https://a.ch/", "https://www.a.ch/"], _CFG)
+    assert fr.ok is False
+    assert fr.html is None
+    assert fr.status is None
+    assert "Timeout" in fr.error
+
+
+def test_connection_error_all_variants(monkeypatch):
+    def fake_get(self, url, **kw):
+        raise requests.exceptions.ConnectionError("dns fail")
+
+    _patch_get(monkeypatch, fake_get)
+    fr = fetch.fetch(["https://x.invalid/", "http://x.invalid/"], _CFG)
+    assert fr.ok is False
+    assert fr.html is None
+    assert fr.error == "nicht erreichbar"
+
+
+def test_too_many_redirects(monkeypatch):
+    def fake_get(self, url, **kw):
+        raise requests.exceptions.TooManyRedirects("loop")
+
+    _patch_get(monkeypatch, fake_get)
+    fr = fetch.fetch(["https://loop.ch/"], _CFG)
+    assert fr.ok is False
+    assert fr.error == "Redirect-Schleife"
+
+
+def test_encoding_fallback(monkeypatch):
+    """latin-1/win-1252-Bytes -> errors='replace', kein UnicodeDecodeError."""
+    # 0xfc = ü in latin-1; als utf-8 wäre das ein ungültiges Byte.
+    body = "Café Müller Grüße".encode("latin-1")
+
+    def fake_get(self, url, **kw):
+        return FakeResponse(
+            status_code=200,
+            url=url,
+            body=body,
+            encoding=None,
+            apparent_encoding="ISO-8859-1",
+        )
+
+    _patch_get(monkeypatch, fake_get)
+    fr = fetch.fetch(["https://umlaut.ch/"], _CFG)
+    assert fr.ok is True
+    assert fr.html is not None  # dekodiert, kein Crash
+    assert "ller" in fr.html
+
+
+def test_byte_cap_stops_reading(monkeypatch):
+    """Body > 2 MB wird auf ~2 MB gekappt (iter_content stoppt)."""
+    big = b"a" * (3_000_000)
+
+    def fake_get(self, url, **kw):
+        return FakeResponse(status_code=200, url=url, body=big, chunk_size=8192)
+
+    _patch_get(monkeypatch, fake_get)
+    fr = fetch.fetch(["https://big.ch/"], _CFG)
+    assert fr.ok is True
+    # gekappt: deutlich unter 3 MB, im Bereich des 2-MB-Caps (+ ein Rest-Chunk)
+    assert len(fr.html) < 2_100_000
+
+
+def test_4xx_response_stops_probing(monkeypatch):
+    """Eine echte HTTP-Antwort (auch 404) beendet das Varianten-Probing."""
+    calls = []
+
+    def fake_get(self, url, **kw):
+        calls.append(url)
+        return FakeResponse(status_code=404, url=url, body="<html><body>weg</body></html>")
+
+    _patch_get(monkeypatch, fake_get)
+    fr = fetch.fetch(["https://a.ch/", "https://www.a.ch/"], _CFG)
+    assert fr.status == 404
+    assert fr.ok is False  # 404 ist nicht 200-399
+    assert calls == ["https://a.ch/"]  # nach erster echter Antwort gestoppt
+
+
+def test_fetch_never_raises_on_unexpected_exception(monkeypatch):
+    """Auch eine völlig unerwartete Exception darf fetch() nicht nach aussen werfen."""
+    def fake_get(self, url, **kw):
+        raise RuntimeError("völlig unerwartet")
+
+    _patch_get(monkeypatch, fake_get)
+    fr = fetch.fetch(["https://boom.ch/"], _CFG)  # darf NICHT raisen
+    assert fr.ok is False
+    assert fr.html is None
+    assert fr.error is not None
+
+
+def test_fetch_empty_candidates_is_safe():
+    fr = fetch.fetch([], _CFG)
+    assert fr.ok is False
+    assert fr.html is None
