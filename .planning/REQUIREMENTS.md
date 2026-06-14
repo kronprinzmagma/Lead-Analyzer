@@ -14,7 +14,7 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 - [x] **IO-07**: Ein einziger Einstiegspunkt/Befehl: Eingabedatei rein → Ausgabedatei raus, ohne Eingriff pro Zeile. *(AC1, AC9)*
 
 ### BED — Website-Bedarf-Score (6 Dimensionen)
-- [ ] **BED-01**: Dimension 1 *Existenz & Substanz* wird real gemessen: erreichbar (HTTP 200 nach http/https- und www-Varianten-Probe), geparkt/Platzhalter, Social-Media-only, leerer Inhalt. *(AC11, AC3)*
+- [x] **BED-01**: Dimension 1 *Existenz & Substanz* wird real gemessen: erreichbar (HTTP 200 nach http/https- und www-Varianten-Probe), geparkt/Platzhalter, Social-Media-only, leerer Inhalt. *(AC11, AC3)*
 - [ ] **BED-02**: Dimension 2 *Technische Basis* wird real gemessen: HTTPS + gültiges SSL-Zertifikat; eigene Domain vs. Gratis-Subdomain (wixsite, jimdosite, business.site, …). *(AC11, AC3)*
 - [ ] **BED-03**: Dimension 3 *Mobile & Performance* wird gemessen: Viewport-Meta (immer) + PageSpeed/Lighthouse-Performance wenn verfügbar; sonst heuristischer Fallback mit Vermerk. *(AC11, AC8)*
 - [ ] **BED-04**: Dimension 4 *Auffindbarkeit (SEO)* wird real gemessen: Title/Meta-Description (Vorhandensein+Länge), Canonical, robots.txt/sitemap.xml, H1, noindex. *(AC11, AC3)*
@@ -68,7 +68,7 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 | IO-05 | Phase 1 | Done |
 | IO-06 | Phase 1 | Done |
 | IO-07 | Phase 1 | Done |
-| BED-01 | Phase 2 | Pending |
+| BED-01 | Phase 2 | Complete |
 | ROB-01 | Phase 2 | Pending |
 | ROB-02 | Phase 2 | Pending |
 | ROB-03 | Phase 2 | Pending |

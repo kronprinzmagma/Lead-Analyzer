@@ -45,7 +45,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. HTTP fetch uses hard timeouts, a browser-like User-Agent + de-CH headers, redirect/size limits, and captures SSL errors as a signal rather than crashing (AC4).
   4. One failing row or stage is isolated by a per-row exception boundary; the overall run continues to completion (AC1, AC4).
 **Plans**: 2 plans
-- [ ] 02-01-PLAN.md — Test scaffold (offline network block) + FetchResult + pure normalize() + existence verdict
+- [x] 02-01-PLAN.md — Test scaffold (offline network block) + FetchResult + pure normalize() + existence verdict
 - [ ] 02-02-PLAN.md — Never-crashing fetch() seam + analyze_row wiring (dead->5) + offline sample integration
 
 ### Phase 3: Real Website-Bedarf Score (Dims 2,4,5,6 + Aggregation)
