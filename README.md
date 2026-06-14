@@ -114,4 +114,4 @@ Die `Begründung`-Spalte (standardmässig an, mit `--no-reason` weglassbar) zeig
 python -m pytest tests/ -q
 ```
 
-202 Tests, alle grün. `pytest` ist nur für die Entwicklung nötig (nicht im Laufzeit-`requirements.txt`).
+205 Tests, alle grün. `pytest` ist nur für die Entwicklung nötig (nicht im Laufzeit-`requirements.txt`).
