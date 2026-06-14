@@ -58,4 +58,36 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 - Veröffentlichung von Firmen-/Personendaten — §6 (lokal arbeiten).
 
 ## Traceability
-*(wird vom Roadmapper gefüllt: REQ-ID → Phase)*
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| IO-01 | Phase 1 | Pending |
+| IO-02 | Phase 1 | Pending |
+| IO-03 | Phase 1 | Pending |
+| IO-04 | Phase 1 | Pending |
+| IO-05 | Phase 1 | Pending |
+| IO-06 | Phase 1 | Pending |
+| IO-07 | Phase 1 | Pending |
+| BED-01 | Phase 2 | Pending |
+| ROB-01 | Phase 2 | Pending |
+| ROB-02 | Phase 2 | Pending |
+| ROB-03 | Phase 2 | Pending |
+| BED-02 | Phase 3 | Pending |
+| BED-04 | Phase 3 | Pending |
+| BED-05 | Phase 3 | Pending |
+| BED-06 | Phase 3 | Pending |
+| BED-07 | Phase 3 | Pending |
+| BED-08 | Phase 3 | Pending |
+| NACH-01 | Phase 3 | Pending |
+| ZK-01 | Phase 4 | Pending |
+| ZK-02 | Phase 4 | Pending |
+| ZK-03 | Phase 4 | Pending |
+| PERF-01 | Phase 5 | Pending |
+| PERF-03 | Phase 5 | Pending |
+| BED-03 | Phase 6 | Pending |
+| PERF-02 | Phase 6 | Pending |
+| SETUP-01 | Phase 7 | Pending |
+| SETUP-02 | Phase 7 | Pending |
+| SETUP-03 | Phase 7 | Pending |
+
+**Coverage:** 28/28 v1 requirements mapped. v2/DIFF-* deliberately unmapped (deferred).
