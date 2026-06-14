@@ -13,8 +13,10 @@ from __future__ import annotations
 
 import pytest
 
+from bs4 import BeautifulSoup
+
 from lead_analyzer import fetch, scoring, reasons
-from lead_analyzer.analyzers import seo
+from lead_analyzer.analyzers import seo, payment
 from lead_analyzer.config import Config
 from lead_analyzer.models import RowRecord
 from lead_analyzer.pipeline import analyze_row
@@ -25,8 +27,8 @@ _CFG = Config(input="x", output="y")
 _URL_COL = "Website"
 
 
-def _rec(url):
-    return RowRecord(index=0, cells={_URL_COL: url})
+def _rec(url, name="", branche=""):
+    return RowRecord(index=0, cells={_URL_COL: url, "Kundenname": name, "Branche": branche})
 
 
 # Modernes Fixture: erfüllt ALLE sechs Dimensionen -> Bedarf 1.
@@ -128,7 +130,7 @@ def test_empty_url_is_5_no_network(monkeypatch):
     monkeypatch.setattr(fetch, "fetch", spy)
     res = analyze_row(_rec(None), _URL_COL, _CFG)
     assert res.bedarf == 5
-    assert res.reason == "keine Website"
+    assert "keine Website" in res.reason
 
 
 # --------------------------------------------------------------------------- #
@@ -158,21 +160,63 @@ def test_block_403_no_body_is_not_5_and_is_2(monkeypatch):
 # --------------------------------------------------------------------------- #
 
 def test_reason_is_reasons_build(monkeypatch):
-    """res.reason == reasons.build(res.verdicts) (single source of truth)."""
+    """res.reason == reasons.build(res.verdicts, payment=est) (single source of truth)."""
     monkeypatch.setattr(
         fetch, "fetch",
         lambda c, cfg: _modern_fetch(url="http://firma.ch/",
                                      final_url="http://firma.ch/"),
     )
-    res = analyze_row(_rec("http://firma.ch"), _URL_COL, _CFG)
-    assert res.reason == reasons.build(res.verdicts)
+    rec = _rec("http://firma.ch")
+    res = analyze_row(rec, _URL_COL, _CFG)
+    # die zahl-Schätzung dieser Zeile (name/branche leer, link-loses modern HTML)
+    fr = _modern_fetch(url="http://firma.ch/", final_url="http://firma.ch/")
+    soup = BeautifulSoup(fr.html, "html.parser")
+    est = payment.estimate(rec, fr, soup, _CFG)
+    assert res.reason == reasons.build(res.verdicts, payment=est)
     assert "Bedarf" in res.reason
 
 
-def test_zahl_stays_placeholder(monkeypatch):
+def test_zahl_is_real_estimate(monkeypatch):
+    """Normaler Pfad: AG + Zahnarzt -> echte hohe zahl + 'Zahl (Schätzung):'."""
+    monkeypatch.setattr(fetch, "fetch", lambda c, cfg: _modern_fetch())
+    rec = _rec("https://ok.ch", name="Muster AG", branche="Zahnarzt")
+    res = analyze_row(rec, _URL_COL, _CFG)
+    assert res.zahl >= 4
+    assert "Zahl (Schätzung):" in res.reason
+
+
+def test_zahl_is_real_estimate_thin(monkeypatch):
+    """Link-lose Default-Seite ohne Name/Branche -> konservative 2 (single source)."""
     monkeypatch.setattr(fetch, "fetch", lambda c, cfg: make_fetch_result())
     res = analyze_row(_rec("https://ok.ch"), _URL_COL, _CFG)
-    assert res.zahl == scoring.placeholder_result(_rec("https://ok.ch")).zahl
+    assert res.zahl == payment.estimate(_rec("https://ok.ch"), None, None, _CFG).zahl
+
+
+def test_empty_url_gets_name_based_zahl(monkeypatch):
+    """Leere URL -> Bedarf 5 'keine Website' OHNE Netz, aber echte name/branche-zahl."""
+    def spy(*a, **k):
+        raise AssertionError("fetch darf bei leerer URL NICHT laufen")
+
+    monkeypatch.setattr(fetch, "fetch", spy)
+    res = analyze_row(_rec(None, name="Beispiel AG", branche="Treuhand"), _URL_COL, _CFG)
+    assert res.bedarf == 5
+    assert "keine Website" in res.reason
+    assert res.zahl >= 4   # AG + hoch-Tier -> kein Platzhalter 3
+
+
+def test_exception_boundary_still_estimates_zahl(monkeypatch):
+    """Analyzer wirft -> Bedarf 5 'Fehler:' UND echte name/branche-zahl (netzlos)."""
+    monkeypatch.setattr(fetch, "fetch", lambda c, cfg: make_fetch_result())
+
+    def boom(*a, **k):
+        raise ValueError("kaputt")
+
+    monkeypatch.setattr(seo, "analyze", boom)
+    res = analyze_row(_rec("https://boom.ch", name="Krauer AG", branche="Garage"),
+                      _URL_COL, _CFG)
+    assert res.bedarf == 5
+    assert res.reason.startswith("Fehler:")
+    assert res.zahl >= 3
 
 
 # --------------------------------------------------------------------------- #

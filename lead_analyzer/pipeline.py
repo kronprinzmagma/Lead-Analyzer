@@ -5,8 +5,9 @@ GENAU EINMAL parsen (parse-once) -> die geteilte soup an alle HTML-Dimensionen
 reichen (Dim 1 existence, Dim 4 seo, Dim 5 ai_readiness, Dim 6 content); Dim 2
 technical misst aus dem FetchResult (auch ohne Body); Dim 3 ist der PageSpeed-
 Platzhalter (Phase 6). Die sechs Verdicts -> scoring.bedarf (dead -> 5, sonst
-G/S-Bänder) und reasons.build (Begründungsspalte/NACH-01). `zahl` bleibt auf dem
-Phase-1-Platzhalter (Phase 4 ersetzt). Alles in einer Per-Row-Boundary: eine
+G/S-Bänder) und reasons.build (Begründungsspalte/NACH-01). `zahl` ist ab Phase 4
+die echte Zahlungskräftigkeit-Schätzung (payment.estimate) auf ALLEN drei Pfaden —
+normal, leere-URL, Exception-Boundary. Alles in einer Per-Row-Boundary: eine
 kaputte Zeile killt den Lauf nicht (AC4/ROB-03).
 """
 
@@ -15,14 +16,9 @@ from __future__ import annotations
 from bs4 import BeautifulSoup
 
 from . import fetch, reasons, scoring, table_io
-from .analyzers import ai_readiness, content, existence, seo, technical
+from .analyzers import ai_readiness, content, existence, payment, seo, technical
 from .config import Config
 from .models import RowRecord, RowResult
-
-
-def _zahl_placeholder(record: RowRecord) -> int:
-    """Zahlungskräftigkeit bleibt in Phase 2 auf dem Phase-1-Platzhalter (Phase 4 ersetzt)."""
-    return scoring.placeholder_result(record).zahl
 
 
 def analyze_row(record: RowRecord, url_col: str, config: Config) -> RowResult:
@@ -31,17 +27,21 @@ def analyze_row(record: RowRecord, url_col: str, config: Config) -> RowResult:
     Ablauf: URL normalisieren -> leer? Bedarf 5 'keine Website' OHNE Netz; sonst
     fetch (wirft nie) -> HTML EINMAL parsen -> die geteilte soup an Dim 1/4/5/6,
     Dim 2 aus dem FetchResult, Dim 3 Platzhalter. Die sechs Verdicts -> scoring.bedarf
-    (dead -> 5, sonst G/S-Bänder) und reasons.build (Begründung). `zahl` bleibt
-    Platzhalter. Alles in einer Per-Row-Boundary (AC4/ROB-03): eine kaputte Zeile
-    killt den Lauf nicht.
+    (dead -> 5, sonst G/S-Bänder) und reasons.build (Begründung). `zahl` ist die echte
+    payment.estimate-Schätzung — auch auf dem leere-URL- und dem Exception-Pfad
+    (aus Name/Branche, netzlos). Die Bedarf-Logik ist UNVERÄNDERT. Alles in einer
+    Per-Row-Boundary (AC4/ROB-03): eine kaputte Zeile killt den Lauf nicht.
     """
     try:
         raw = record.cells.get(url_col)
         candidates = fetch.normalize(raw)
         if candidates is None:                       # leere URL -> KEIN Netz
+            # zahl trotzdem echt schätzen (Name/Branche brauchen kein Netz); die
+            # Begründung trägt 'keine Website' (Bedarf) plus die zahl-Schätzung.
+            est = payment.estimate(record, None, None, config)
             return RowResult(
-                record.index, bedarf=5, zahl=_zahl_placeholder(record),
-                reason="keine Website",
+                record.index, bedarf=5, zahl=est.zahl,
+                reason=f"keine Website | {est.reason}",
             )
         fr = fetch.fetch(candidates, config)         # wirft nie
         # parse-once: eine soup pro Zeile, geteilt von allen HTML-Dimensionen.
@@ -57,14 +57,21 @@ def analyze_row(record: RowRecord, url_col: str, config: Config) -> RowResult:
             content.analyze(fr, soup),               # Dim 6 (neutral wenn soup None)
         ]
         bedarf = scoring.bedarf(verdicts)            # dead -> 5, sonst G/S-Bänder
+        est = payment.estimate(record, fr, soup, config)   # echte Zahlungskräftigkeit
         return RowResult(
-            record.index, bedarf=bedarf, zahl=_zahl_placeholder(record),
-            reason=reasons.build(verdicts), verdicts=verdicts,
+            record.index, bedarf=bedarf, zahl=est.zahl,
+            reason=reasons.build(verdicts, payment=est), verdicts=verdicts,
         )
     except Exception as e:                            # AC4-Boundary — der Lauf geht weiter
+        # zahl defensiv schätzen — darf INNERHALB der Boundary NIE re-raisen.
+        try:
+            est = payment.estimate(record, None, None, config)
+            zahl, zreason = est.zahl, est.reason
+        except Exception:
+            zahl, zreason = 2, "Zahl (Schätzung): nicht ermittelbar"   # konservativ, AC4
         return RowResult(
-            record.index, bedarf=5, zahl=_zahl_placeholder(record),
-            reason=f"Fehler: {type(e).__name__}",
+            record.index, bedarf=5, zahl=zahl,
+            reason=f"Fehler: {type(e).__name__} | {zreason}",
         )
 
 

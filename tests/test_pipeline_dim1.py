@@ -17,7 +17,7 @@ import openpyxl
 import pytest
 
 from lead_analyzer import fetch, scoring
-from lead_analyzer.analyzers import existence
+from lead_analyzer.analyzers import existence, payment
 from lead_analyzer.config import Config
 from lead_analyzer.models import RowRecord, RowResult
 from lead_analyzer.pipeline import analyze_row, run
@@ -78,10 +78,10 @@ def test_empty_url_no_network(monkeypatch):
     monkeypatch.setattr(fetch, "fetch", spy)
     res = analyze_row(_rec(None), _URL_COL, _CFG)
     assert res.bedarf == 5
-    assert res.reason == "keine Website"
+    assert "keine Website" in res.reason
     assert called["n"] == 0
-    # zahl bleibt Phase-1-Platzhalter
-    assert res.zahl == scoring.placeholder_result(_rec(None)).zahl
+    # zahl = echte konservative Schätzung (kein Name/Branche, fr/soup None -> 2)
+    assert res.zahl == payment.estimate(_rec(None), None, None, _CFG).zahl
 
 
 def test_empty_string_url_no_network(monkeypatch):
@@ -91,7 +91,7 @@ def test_empty_string_url_no_network(monkeypatch):
     monkeypatch.setattr(fetch, "fetch", spy)
     res = analyze_row(_rec("   "), _URL_COL, _CFG)
     assert res.bedarf == 5
-    assert res.reason == "keine Website"
+    assert "keine Website" in res.reason
 
 
 def test_dead_unreachable_is_bedarf_5(monkeypatch):
@@ -158,10 +158,11 @@ def test_reachable_thin_is_4(monkeypatch):
     assert res.bedarf == 4
 
 
-def test_zahl_stays_placeholder(monkeypatch):
+def test_zahl_is_real_estimate(monkeypatch):
     monkeypatch.setattr(fetch, "fetch", lambda c, cfg: make_fetch_result())
     res = analyze_row(_rec("https://ok.ch"), _URL_COL, _CFG)
-    assert res.zahl == scoring.placeholder_result(_rec("https://ok.ch")).zahl
+    # link-lose Default-Seite, kein Name/Branche -> Group C leer -> konservative 2
+    assert res.zahl == payment.estimate(_rec("https://ok.ch"), None, None, _CFG).zahl
 
 
 # --------------------------------------------------------------------------- #
