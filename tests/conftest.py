@@ -96,7 +96,20 @@ class FakeResponse:
         self.apparent_encoding = apparent_encoding
         self._chunk_size = chunk_size
 
+        self.closed = False
+
     def iter_content(self, chunk_size: int = 8192):
         size = chunk_size or self._chunk_size
         for i in range(0, len(self._body), size):
             yield self._body[i : i + size]
+
+    def close(self):
+        self.closed = True
+
+    # Context-Manager: fetch() nutzt `with resp:` zum garantierten Schliessen.
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
+        return False

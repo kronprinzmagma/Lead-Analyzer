@@ -69,9 +69,9 @@ _THIN_WORDS = 300
 
 def analyze(fr) -> DimensionVerdict:
     """Reiner Dimension-1-Befund über ein `FetchResult`."""
-    # 1) Alle Varianten gescheitert: kein Body -> tot.
-    if fr.error and not fr.html:
-        return DimensionVerdict(1, "severe", f"nicht erreichbar ({fr.error})", "html")
+    # 1) Keine Antwort von irgendeiner Variante (kein Status) -> tot.
+    if fr.status is None and not fr.html:
+        return DimensionVerdict(1, "severe", f"nicht erreichbar ({fr.error or 'kein Body'})", "html", dead=True)
 
     # 2) WAF-Block: geantwortet, aber nicht bewertbar -> NICHT Bedarf 5.
     if fr.status in (403, 406, 429):
@@ -79,7 +79,12 @@ def analyze(fr) -> DimensionVerdict:
 
     # 3) Echte HTTP-Fehler ohne Body -> tot.
     if fr.status is not None and fr.status >= 400 and not fr.html:
-        return DimensionVerdict(1, "severe", f"nicht erreichbar (HTTP {fr.status})", "html")
+        return DimensionVerdict(1, "severe", f"nicht erreichbar (HTTP {fr.status})", "html", dead=True)
+
+    # 3b) Host hat geantwortet (Status < 400), aber Body unlesbar -> existiert,
+    #     nur nicht bewertbar (Review L2): gap, NICHT tot.
+    if not fr.html:
+        return DimensionVerdict(1, "gap", f"Antwort ohne lesbaren Body ({fr.error or 'leer'})", "html")
 
     host = urlsplit(fr.final_url or fr.url or "").netloc.lower().removeprefix("www.")
 
@@ -89,13 +94,16 @@ def analyze(fr) -> DimensionVerdict:
         soup = BeautifulSoup(fr.html, "html.parser")
         for tag in soup(["script", "style", "nav", "footer"]):
             tag.decompose()
-        title = (soup.title.string or "").strip().lower() if soup.title and soup.title.string else ""
+        # get_text() statt .string: greift auch bei verschachteltem Title-Markup.
+        title = soup.title.get_text(" ", strip=True) if soup.title else ""
         text = soup.get_text(" ", strip=True)
+    # Parking-/Platzhalter-Marker stehen praktisch immer ganz oben; 1024 Zeichen
+    # Body reichen und halten den Substring-Scan billig (bewusste Kappung).
     low = (title + " " + text[:1024]).lower()
 
     # 4) Geparkt (Host oder Marker).
     if host in PARKED_HOSTS or any(m in low for m in PARKED_MARKERS):
-        return DimensionVerdict(1, "severe", "geparkt/Platzhalter", "html")
+        return DimensionVerdict(1, "severe", "geparkt/Platzhalter", "html", dead=True)
 
     # 5) Social-only.
     if host in SOCIAL_HOSTS:

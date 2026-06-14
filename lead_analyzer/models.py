@@ -24,6 +24,8 @@ class DimensionVerdict:
     level: str                     # "ok" | "gap" | "severe"
     reason: str                    # menschenlesbar -> Log + Begründungsspalte
     source: str = "html"           # "html" | "pagespeed" | "llm" | "heuristic-fallback"
+    dead: bool = False             # explizites Maschinen-Flag: keine/defekte Website -> Bedarf-Override 5
+                                   #   (entkoppelt die Score-Richtung vom Anzeige-Text, AC3)
 
 
 @dataclass

@@ -14,20 +14,17 @@ def clamp_score(value: int) -> int:
     return max(1, min(5, int(round(value))))
 
 
-# Tot-Ursachen (Reason-Präfixe) -> Website-Bedarf wird hart auf 5 überschrieben.
-_DEAD_PREFIXES = ("nicht erreichbar", "geparkt")
-
-
 def bedarf_from_dim1(verdict: DimensionVerdict) -> int:
     """Provisorische Bedarf-Ableitung aus dem Dimension-1-Befund (Phase 2).
 
-    - Tot-Ursachen (Reason beginnt mit 'nicht erreichbar' oder 'geparkt') -> 5
-      (Override: keine/defekte Website = höchster Bedarf, CLAUDE.md §3).
+    - `dead`-Flag (keine/defekte/geparkte Website) -> 5 (Override: höchster Bedarf,
+      CLAUDE.md §3). Das Flag wird in existence.analyze gesetzt — die Score-Richtung
+      hängt damit NICHT am Anzeige-Text (AC3 robust gegen Text-Edits).
     - severe-nicht-tot (z.B. Social-only): Präsenz existiert, aber dünn -> 4.
     - gap / ok: spürbare Lücken bzw. solide -> provisorisch 3, bis Phase 3 die
       echte 6-Dimensionen-Aggregation liefert.
     """
-    if verdict.level == "severe" and verdict.reason.startswith(_DEAD_PREFIXES):
+    if verdict.dead:
         return clamp_score(5)
     if verdict.level == "severe":
         return clamp_score(4)

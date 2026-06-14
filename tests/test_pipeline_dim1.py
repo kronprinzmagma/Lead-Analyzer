@@ -38,9 +38,17 @@ def _rec(url):
 
 def test_bedarf_from_dim1_dead_causes_are_5():
     from lead_analyzer.models import DimensionVerdict
+    # Override hängt am dead-Flag, NICHT am Reason-Text (Review L5).
     for reason in ("nicht erreichbar (Timeout)", "geparkt/Platzhalter"):
-        v = DimensionVerdict(1, "severe", reason)
+        v = DimensionVerdict(1, "severe", reason, dead=True)
         assert scoring.bedarf_from_dim1(v) == 5
+
+
+def test_bedarf_from_dim1_text_alone_does_not_force_5():
+    """Eine severe-Verdict mit 'tot klingendem' Text aber dead=False darf NICHT 5 sein."""
+    from lead_analyzer.models import DimensionVerdict
+    v = DimensionVerdict(1, "severe", "nicht erreichbar (Timeout)", dead=False)
+    assert scoring.bedarf_from_dim1(v) == 4  # severe-nicht-tot
 
 
 def test_bedarf_from_dim1_social_severe_is_4():

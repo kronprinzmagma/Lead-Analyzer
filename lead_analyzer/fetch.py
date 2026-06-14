@@ -126,61 +126,72 @@ def fetch(candidates: list[str], config) -> FetchResult:
     timeout = (config.timeout_connect, config.timeout_read)
     last_err = "nicht erreichbar"
 
-    for url in candidates:
-        for verify in (True, False):         # zweiter Durchlauf NUR nach SSLError
-            try:
-                if verify is False:
-                    # InsecureRequestWarning nur auf dem Fallback-Pfad unterdrücken
-                    # (Signal ist bereits als ssl_ok=False erfasst). Scoped, nicht global.
-                    from urllib3.exceptions import InsecureRequestWarning  # lokal: optionaler Dep-Pfad
-                    import warnings
-                    with warnings.catch_warnings():
-                        warnings.simplefilter("ignore", InsecureRequestWarning)
-                        resp = session.get(
-                            url, timeout=timeout, allow_redirects=True,
-                            stream=True, verify=False,
-                        )
-                else:
-                    resp = session.get(
-                        url, timeout=timeout, allow_redirects=True,
-                        stream=True, verify=True,
-                    )
-                html = _read_capped(resp)
-                return FetchResult(
-                    url=url,
-                    ok=(200 <= resp.status_code < 400),
-                    status=resp.status_code,
-                    final_url=resp.url,
-                    redirected=(resp.url != url),
-                    ssl_ok=verify,           # False, wenn wir auf verify=False fielen
-                    headers=dict(resp.headers),
-                    html=html,
-                    error=None,
-                )
-            except requests.exceptions.SSLError:
-                last_err = "SSL-Fehler"
-                continue                      # dieselbe URL mit verify=False erneut
-            except requests.exceptions.Timeout:
-                last_err = "Timeout"
-                break                         # nächste Variante
-            except requests.exceptions.TooManyRedirects:
-                last_err = "Redirect-Schleife"
-                break
-            except requests.exceptions.RequestException:
-                last_err = "nicht erreichbar"
-                break
-            except Exception as e:            # belt-and-braces: fetch() wirft NIE
-                last_err = f"Fetch-Ausnahme: {type(e).__name__}"
-                break
+    try:
+        for url in candidates:
+            for verify in (True, False):     # zweiter Durchlauf NUR nach SSLError
+                try:
+                    resp = _do_get(session, url, timeout, verify)
+                except requests.exceptions.SSLError:
+                    last_err = "SSL-Fehler"
+                    continue                  # dieselbe URL mit verify=False erneut
+                except requests.exceptions.Timeout:
+                    last_err = "Timeout"
+                    break                     # nächste Variante
+                except requests.exceptions.TooManyRedirects:
+                    last_err = "Redirect-Schleife"
+                    break
+                except requests.exceptions.RequestException:
+                    last_err = "nicht erreichbar"
+                    break
+                except Exception as e:        # belt-and-braces: fetch() wirft NIE
+                    last_err = f"Fetch-Ausnahme: {type(e).__name__}"
+                    break
 
-    return FetchResult(
-        url=candidates[0] if candidates else "",
-        ok=False,
-        status=None,
-        final_url=None,
-        redirected=False,
-        ssl_ok=False,
-        headers={},
-        html=None,
-        error=last_err,
-    )
+                # Antwort erhalten = Host existiert. Body lesen; ein Lesefehler
+                # (z.B. ChunkedEncodingError mid-stream) verwirft den Body, NICHT
+                # die Existenz — Status bleibt erhalten (Review L2). `with resp`
+                # gibt die Verbindung in jedem Fall zurück (Review M1).
+                with resp:
+                    try:
+                        html = _read_capped(resp)
+                        read_err = None
+                    except Exception:
+                        html = None
+                        read_err = "Body-Lesefehler"
+                    return FetchResult(
+                        url=url,
+                        ok=(200 <= resp.status_code < 400),
+                        status=resp.status_code,
+                        final_url=resp.url,
+                        redirected=(resp.url != url),
+                        ssl_ok=verify,         # False, wenn wir auf verify=False fielen
+                        headers=dict(resp.headers),
+                        html=html,
+                        error=read_err,
+                    )
+
+        return FetchResult(
+            url=candidates[0] if candidates else "",
+            ok=False,
+            status=None,
+            final_url=None,
+            redirected=False,
+            ssl_ok=False,
+            headers={},
+            html=None,
+            error=last_err,
+        )
+    finally:
+        session.close()                       # Pool/Sockets freigeben (Review M1)
+
+
+def _do_get(session, url: str, timeout, verify: bool):
+    """Ein einzelner GET. Bei verify=False wird die InsecureRequestWarning scoped
+    unterdrückt (das SSL-Signal ist bereits via ssl_ok=False erfasst)."""
+    if verify:
+        return session.get(url, timeout=timeout, allow_redirects=True, stream=True, verify=True)
+    import warnings
+    from urllib3.exceptions import InsecureRequestWarning
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", InsecureRequestWarning)
+        return session.get(url, timeout=timeout, allow_redirects=True, stream=True, verify=False)

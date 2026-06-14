@@ -263,3 +263,47 @@ def test_fetch_empty_candidates_is_safe():
     fr = fetch.fetch([], _CFG)
     assert fr.ok is False
     assert fr.html is None
+
+
+# ---------- Review-Fixes: M1 (Response schliessen) + L2 (Lesefehler != tot) ----------
+
+def test_response_is_closed_after_fetch(monkeypatch):
+    """M1: die gestreamte Response wird via `with resp:` immer geschlossen
+    (Verbindung/Socket zurück in den Pool) — auch wenn der Byte-Cap früh abbricht."""
+    resp = FakeResponse(status_code=200, url="https://a.ch/", body="<html><body>ok</body></html>")
+
+    def fake_get(self, url, **kw):
+        return resp
+
+    _patch_get(monkeypatch, fake_get)
+    fr = fetch.fetch(["https://a.ch/"], _CFG)
+    assert fr.ok is True
+    assert resp.closed is True  # geschlossen
+
+
+def test_midstream_read_error_keeps_host_exists(monkeypatch):
+    """L2: Antwort erhalten (Host existiert), aber Body-Lesen scheitert mid-stream
+    -> Status bleibt, html=None, error gesetzt; NICHT als 'nicht erreichbar' verworfen."""
+    class BrokenBody(FakeResponse):
+        def iter_content(self, chunk_size=8192):
+            yield b"<html>"
+            raise requests.exceptions.ChunkedEncodingError("abgebrochen")
+
+    broken = BrokenBody(status_code=200, url="https://a.ch/")
+
+    def fake_get(self, url, **kw):
+        return broken
+
+    _patch_get(monkeypatch, fake_get)
+    fr = fetch.fetch(["https://a.ch/"], _CFG)
+    assert fr.status == 200          # Host hat geantwortet
+    assert fr.html is None           # Body verworfen
+    assert fr.error is not None
+    assert broken.closed is True     # trotzdem geschlossen (M1)
+
+    # Und die Existenz-Dimension wertet das als gap (existiert), NICHT als tot/Bedarf 5.
+    from lead_analyzer.analyzers import existence
+    from lead_analyzer import scoring
+    verdict = existence.analyze(fr)
+    assert verdict.dead is False
+    assert scoring.bedarf_from_dim1(verdict) != 5
