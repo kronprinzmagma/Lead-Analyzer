@@ -37,9 +37,9 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 - [x] **NACH-01**: Zu jedem Kunden ist erkennbar, welche Signale/Dimensionen den Bedarf-Score und welche Annahmen den Zahlungskräftigkeit-Score getrieben haben — über eine Begründungsspalte im Output und/oder ein Lauf-Log. *(AC6, AC5, AC11)*
 
 ### PERF — Wiederholbarkeit, Cache, Limits
-- [ ] **PERF-01**: Ergebnisse pro URL werden inkrementell auf Platte gecacht (atomic write); ein erneuter Lauf nutzt den Cache, ein Abbruch verwirft nicht die ganze Arbeit. *(AC7)*
+- [x] **PERF-01**: Ergebnisse pro URL werden inkrementell auf Platte gecacht (atomic write); ein erneuter Lauf nutzt den Cache, ein Abbruch verwirft nicht die ganze Arbeit. *(AC7)*
 - [ ] **PERF-02**: Externe APIs (PageSpeed, optional LLM/Zefix) nutzen Batching/Retry/Backoff und respektieren Rate-Limits/`Retry-After`; ein API-Fehler bricht den Lauf nicht ab. *(AC8)*
-- [ ] **PERF-03**: Hunderte Zeilen werden in vertretbarer Zeit verarbeitet (nebenläufiger Fetch, optionale Stages skippbar via Flag). *(AC1)*
+- [x] **PERF-03**: Hunderte Zeilen werden in vertretbarer Zeit verarbeitet (nebenläufiger Fetch, optionale Stages skippbar via Flag). *(AC1)*
 
 ### SETUP — Setup, Docs, Verifikation
 - [ ] **SETUP-01**: README erklärt Setup (inkl. API-Keys via `.env`) und Aufruf in <5 Minuten; läuft auch ganz ohne Keys (graceful degradation). *(AC9)*
@@ -82,8 +82,8 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 | ZK-01 | Phase 4 | Pending |
 | ZK-02 | Phase 4 | Pending |
 | ZK-03 | Phase 4 | Pending |
-| PERF-01 | Phase 5 | Pending |
-| PERF-03 | Phase 5 | Pending |
+| PERF-01 | Phase 5 | Complete |
+| PERF-03 | Phase 5 | Complete |
 | BED-03 | Phase 6 | Pending |
 | PERF-02 | Phase 6 | Pending |
 | SETUP-01 | Phase 7 | Pending |

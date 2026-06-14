@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 03-04-PLAN.md (6-Dim Bedarf pipeline wiring, parse-once); 134 tests green.
-last_updated: "2026-06-14T14:19:57.789Z"
-last_activity: "2026-06-14 — Phase 3 Plan 04 shipped: analyze_row verdrahtet alle 6 Bedarf-Dimensionen (parse-once), Begründung via reasons.build, 403!=5 by construction; live sample 42 Zeilen verteilt über 1–5; 134 tests green."
+stopped_at: Completed 05-02-PLAN.md (ThreadPoolExecutor + CLI flags); 177 tests green.
+last_updated: "2026-06-14T15:20:48.480Z"
+last_activity: "2026-06-14 — Phase 5 shipped: transparenter Per-URL-Cache (cache-aside, atomar) + ThreadPoolExecutor run() + --workers/--no-cache; live 42 Zeilen 6.20s cold -> 0.93s warm (~6.7x), Outputs identisch; 177 tests green."
 progress:
   total_phases: 7
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 4
+  total_plans: 11
+  completed_plans: 11
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 
 ## Current Position
 
-Phase: 3 of 7 (Real Website-Bedarf Score) — plans 03-01/02/03/04 executed
-Plan: Phase 3 plans complete (analyzers + scoring.bedarf + full 6-Dim pipeline wiring, parse-once); 134 tests green + committed
-Status: Phase 3 execution done; ready for /gsd-verify-work.
-Last activity: 2026-06-14 — Phase 3 Plan 04 shipped: 6-Dim Bedarf in analyze_row (parse-once), Begründung via reasons.build, 403!=5 by construction; live sample 42 Zeilen über 1–5; 134 tests green.
+Phase: 5 of 7 (Cache + Concurrency) — plans 05-01/05-02 executed
+Plan: Phase 5 plans complete (cache-aside + FetchResult serialization + ThreadPoolExecutor run() + --workers/--no-cache); 177 tests green + committed
+Status: Phase 5 execution done; ready for /gsd-verify-work.
+Last activity: 2026-06-14 — Phase 5 shipped: transparenter Per-URL-Cache (atomar, thread-sicher) + parallele run() + CLI-Flags; live 42 Zeilen 6.20s cold -> 0.93s warm (~6.7x), Outputs byte-identisch; repo cache/ pollution-frei nach pytest; 177 tests green.
 
 Progress: [██████████] 100%
 

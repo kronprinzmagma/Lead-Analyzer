@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Fetch + Existence (Dim 1) + Robustness** - Non-crashing live fetch; dead/parked/social -> Bedarf 5
 - [ ] **Phase 3: Real Website-Bedarf Score (Dims 2,4,5,6 + Aggregation)** - Deterministic 6-dimension score with traceable reasons
 - [ ] **Phase 4: Zahlungskräftigkeit Estimator** - Second score from legal form + branch tier + site-size signals
-- [ ] **Phase 5: Cache + Concurrency** - Resumable per-URL cache and threaded fetch for hundreds of rows
+- [x] **Phase 5: Cache + Concurrency** - Resumable per-URL cache and threaded fetch for hundreds of rows (completed 2026-06-14)
 - [ ] **Phase 6: Optional PageSpeed (Dim 3) + Rate Limiting** - Skippable PSI tier with backoff; viewport heuristic fallback
 - [ ] **Phase 7: Hardening + README + Full Sample Run** - <5-min setup, .env handling, full 42-row run with rationale
 
@@ -89,8 +89,8 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. The orchestrator fetches concurrently (thread pool) and processes hundreds of rows in reasonable time, with stages skippable via flag (AC1).
   3. Caching and concurrency preserve correctness: output still has all rows, correct sort, and unchanged original columns.
 **Plans**: 2 plans
-  - [ ] 05-01-PLAN.md — Atomic per-URL cache (cache.py) + FetchResult serialization + cache-aside in fetch.fetch (PERF-01)
-  - [ ] 05-02-PLAN.md — ThreadPoolExecutor in run() (determinism-preserving) + --workers/--no-cache CLI flags + resume (PERF-03)
+  - [x] 05-01-PLAN.md — Atomic per-URL cache (cache.py) + FetchResult serialization + cache-aside in fetch.fetch (PERF-01)
+  - [x] 05-02-PLAN.md — ThreadPoolExecutor in run() (determinism-preserving) + --workers/--no-cache CLI flags + resume (PERF-03)
 
 ### Phase 6: Optional PageSpeed (Dim 3) + Rate Limiting
 **Goal**: PageSpeed enriches Dimension 3 when available, stays fully skippable, and never stalls or aborts the run.
@@ -125,6 +125,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 2. Fetch + Existence + Robustness | 0/2 | Not started | - |
 | 3. Real Website-Bedarf Score | 0/4 | Not started | - |
 | 4. Zahlungskräftigkeit Estimator | 0/3 | Not started | - |
-| 5. Cache + Concurrency | 0/TBD | Not started | - |
+| 5. Cache + Concurrency | 2/2 | Complete   | 2026-06-14 |
 | 6. Optional PageSpeed + Rate Limiting | 0/TBD | Not started | - |
 | 7. Hardening + README + Full Sample Run | 0/TBD | Not started | - |
