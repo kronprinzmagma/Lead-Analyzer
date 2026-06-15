@@ -20,6 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Optional PageSpeed (Dim 3) + Rate Limiting** - Skippable PSI tier with backoff; viewport heuristic fallback
 - [x] **Phase 7: Hardening + README + Full Sample Run** - <5-min setup, .env handling, full 42-row run with rationale
 - [x] **Phase 8: Company Research (Zefix) for Zahlungskräftigkeit** - Authoritative legal form/status from the Swiss commercial register; gated like PageSpeed, degrades to the name-heuristic without creds (completed 2026-06-15)
+- [ ] **Phase 9: myWEBSITE Sales Arguments Sheet** - Second output worksheet turning each company's deficits into myWEBSITE features + concrete sales benefits (gain framing)
 
 ## Phase Details
 
@@ -139,10 +140,23 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 08-01-PLAN.md — ZefixClient (gated, budget/backoff) + ZefixFacts + Config fields
 - [x] 08-02-PLAN.md — Zefix score composition (Group A + status modifier) + pipeline wiring + run-log
 
+### Phase 9: myWEBSITE Sales Arguments Sheet
+**Goal**: The output .xlsx gains a second worksheet that turns each company's measured deficits into positive, sales-ready myWEBSITE arguments — one row per company: customer name, its deficits, and the myWEBSITE features that fix them with the concrete benefit (gain framing, not deficit framing).
+**Mode:** mvp
+**Depends on**: Phase 3 (six-dimension verdicts are the deficit source), Phase 1 (table_io output writer)
+**Requirements**: DIFF-04 (activated), NACH-01
+**Success Criteria** (what must be TRUE):
+  1. The output .xlsx contains a second worksheet (e.g. "myWEBSITE-Argumente") alongside "Leads", with columns Kundenname | Defizite | myWEBSITE-Funktionen & Nutzen, one row per company, written in the same sorted order as the main sheet (AC2-consistent).
+  2. Each company's listed deficits are exactly its non-ok dimension verdicts (same drivers as the Bedarf score), and each deficit maps to its myWEBSITE feature + concrete benefit via a deterministic, traceable mapping table — no LLM, no invented features (AC6, no invented facts à la AC5).
+  3. A company with no deficits (modern site, Bedarf 1) gets an honest "keine akuten Defizite — Stärken halten" note instead of forced/empty arguments.
+  4. The feature is fully offline/deterministic and adds no network calls; the existing "Leads" sheet (all original columns + two scores + sort) is byte-unchanged; CSV output still works (the argument sheet is xlsx-native — for CSV a companion `*_argumente.csv` is written or its absence is documented).
+  5. Tests cover the dimension→feature/benefit mapping (each of the six dimensions) and the second-sheet structure/order.
+**Plans**: TBD (run /gsd-plan-phase 9 to break down)
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -154,3 +168,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 6. Optional PageSpeed + Rate Limiting | 5/5 | Complete | 2026-06-14 |
 | 7. Hardening + README + Full Sample Run | 5/5 | Complete | 2026-06-14 |
 | 8. Company Research (Zefix) for Zahlungskräftigkeit | 2/2 | Complete   | 2026-06-15 |
+| 9. myWEBSITE Sales Arguments Sheet | 0/0 | Not planned | — |
