@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Optional PageSpeed (Dim 3) + Rate Limiting** - Skippable PSI tier with backoff; viewport heuristic fallback
 - [x] **Phase 7: Hardening + README + Full Sample Run** - <5-min setup, .env handling, full 42-row run with rationale
 - [x] **Phase 8: Company Research (Zefix) for Zahlungskräftigkeit** - Authoritative legal form/status from the Swiss commercial register; gated like PageSpeed, degrades to the name-heuristic without creds (completed 2026-06-15)
-- [ ] **Phase 9: myWEBSITE Sales Arguments Sheet** - Second output worksheet turning each company's deficits into myWEBSITE features + concrete sales benefits (gain framing)
+- [x] **Phase 9: myWEBSITE Sales Arguments Sheet** - Second output worksheet turning each company's deficits into myWEBSITE features + concrete sales benefits (gain framing) (completed 2026-06-15)
 
 ## Phase Details
 
@@ -152,7 +152,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. The feature is fully offline/deterministic and adds no network calls; the existing "Leads" sheet (all original columns + two scores + sort) is byte-unchanged; CSV output still works (the argument sheet is xlsx-native — for CSV a companion `*_argumente.csv` is written or its absence is documented).
   5. Tests cover the dimension→feature/benefit mapping (each of the six dimensions) and the second-sheet structure/order.
 **Plans**: 1 plan
-- [ ] 09-01-PLAN.md — mywebsite.py mapping+builder, second "myWEBSITE-Argumente" sheet in table_io, companion CSV, Wave 0 tests
+- [x] 09-01-PLAN.md — mywebsite.py mapping+builder, second "myWEBSITE-Argumente" sheet in table_io, companion CSV, Wave 0 tests
 
 ## Progress
 
@@ -169,4 +169,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 6. Optional PageSpeed + Rate Limiting | 5/5 | Complete | 2026-06-14 |
 | 7. Hardening + README + Full Sample Run | 5/5 | Complete | 2026-06-14 |
 | 8. Company Research (Zefix) for Zahlungskräftigkeit | 2/2 | Complete   | 2026-06-15 |
-| 9. myWEBSITE Sales Arguments Sheet | 0/1 | Planned | — |
+| 9. myWEBSITE Sales Arguments Sheet | 1/1 | Complete | 2026-06-15 |
