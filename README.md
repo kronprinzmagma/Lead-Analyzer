@@ -3,8 +3,9 @@
 **Turn a raw customer list into a ranked call sheet — best sales opportunities on top — in a single run.**
 
 Sales regularly receives spreadsheets with hundreds of companies and the same recurring question:
-*Who do I call first?* That question has two halves — **Who needs what we sell?** and **Who can
-afford it?** — and answering both by hand for every row takes days and ends up as gut feeling.
+*Who do I call first?* That question has two halves — **Who needs a better website (technically)?**
+and **Who can afford it (financially)?** — and answering both by hand for every row takes days and
+ends up as gut feeling.
 
 Lead-Analyzer answers both halves automatically for the **entire list**, assigns two transparent
 1–5 scores per customer, and sorts the ideal leads to the top. An Excel file goes in, the same
@@ -19,11 +20,11 @@ Excel file comes out — just with two new columns and the right order.
 
 Prioritizing a customer list is really two pieces of research per row:
 
-- **Does this company need a new website?** You'd have to open the site, check whether it even
-  loads, whether it works on mobile, whether Google can find it, whether it's secure (HTTPS),
-  whether there's a contact form and a legal notice … several minutes per customer.
-- **Is this company worth selling to?** You'd have to dig up legal form, industry, and size to
-  estimate purchasing power.
+- **Does this company need a better website (technically)?** You'd have to open the site, check
+  whether it even loads, whether it works on mobile, whether Google can find it, whether it's
+  secure (HTTPS), whether there's a contact form and a legal notice … several minutes per customer.
+- **Can this company afford it (financially)?** You'd have to dig up legal form, industry, and size
+  to estimate purchasing power.
 
 At 300 companies that's nobody's job — so it doesn't get done, and Sales works the list top to
 bottom instead of *good* to *bad*. That's exactly the gap this tool closes: it runs both pieces of
