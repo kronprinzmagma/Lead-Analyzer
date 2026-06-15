@@ -50,6 +50,18 @@ headers stay in German because they're written into the customer's own spreadshe
 website **and** can *afford* it right at the top — the ideal leads. For every score, the
 **reasoning column** shows which signals drove it: no score is a black box.
 
+### A second sheet with ready-made sales arguments
+
+The output workbook also contains a second worksheet, **"Verkaufsargumente"** — one row per
+company that flips the analysis from *deficit* to *gain*. Where the main sheet says *what's
+missing*, this sheet says *what a modern website solution would deliver and what it concretely
+brings*: per company its measured deficits, the matching capability (own domain + SSL,
+responsive design, SEO, AI/answer-engine readiness, contact features), and the concrete benefit
+("found on Google", "reaches mobile visitors", "no *not secure* warning"). It's a deterministic
+mapping from the same six dimensions — no guesswork, and a company with a modern site honestly
+gets a *"keine akuten Defizite"* note instead of invented weaknesses. Sales can read talking
+points straight off the row.
+
 ---
 
 ## What the tool does *not* do (and why that's good)

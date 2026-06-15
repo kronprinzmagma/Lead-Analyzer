@@ -1,14 +1,19 @@
-"""Deterministic myWEBSITE sales-argument builder (Phase 9 / DIFF-04 / NACH-01).
+"""Deterministic sales-argument builder (Phase 9 / DIFF-04 / NACH-01).
 
 Pure module — no I/O, no network, no external dependencies, never raises.
 Converts each company's measured dimension deficits (RowResult.verdicts) into
-positive, sales-ready myWEBSITE arguments for the second output sheet.
+positive, sales-ready arguments for a modern website solution, written into the
+second output sheet ("Verkaufsargumente").
 
-The mapping table (_MAPPING) is a verbatim copy of the 09-RESEARCH.md "THE MAPPING"
-table and is the single source of truth for argument text.  Deficit drivers are
-determined using the EXACT same predicate as lead_analyzer.reasons.build():
+The mapping table (_MAPPING) is the single source of truth for the argument text
+— edit wording here, in one place. Deficit drivers are determined using the EXACT
+same predicate as lead_analyzer.reasons.build():
     drivers = [v for v in verdicts if v.level != "ok" or v.dead]
 so the argument sheet and the Begründung column can NEVER disagree (NACH-01).
+
+The arguments describe generic capabilities of a modern, professional website
+solution (own domain, SSL, responsive design, SEO, structured content, contact
+features) — deliberately product-neutral.
 """
 
 from __future__ import annotations
@@ -17,17 +22,18 @@ from .models import RowRecord, RowResult
 
 # ---------- Module-level constants ----------
 
-# THE MAPPING — copied VERBATIM from 09-RESEARCH.md (dim → deficit label, funktion, nutzen).
-# Key: dimension number 1..6. Values: defizit, funktion, nutzen strings.
+# THE MAPPING — single source of truth (dim → deficit label, solution, benefit).
+# Key: dimension number 1..6. Values: defizit, funktion (solution), nutzen (benefit).
+# Product-neutral wording: describes what a modern website solution provides.
 _MAPPING: dict[int, dict[str, str]] = {
     1: {
         "defizit": "Keine/defekte Website oder nur Social Media",
-        "funktion": "Komplette professionelle Website in 14 Tagen live, inkl. eigener .ch-Domain",
+        "funktion": "Professionelle eigene Website mit eigener Domain",
         "nutzen": "Überhaupt seriös online & auf Google auffindbar — statt nur Social-Profil oder gar nichts",
     },
     2: {
         "defizit": "Kein HTTPS/SSL oder nur Gratis-Subdomain",
-        "funktion": 'SSL-Zertifikat inklusive + eigene .ch-Domain',
+        "funktion": "SSL-Verschlüsselung + eigene Domain (statt Gratis-Subdomain)",
         "nutzen": 'Kein „Nicht sicher“-Warnhinweis im Browser; eigene Adresse statt wixsite.com = Vertrauen & Seriosität',
     },
     3: {
@@ -37,17 +43,17 @@ _MAPPING: dict[int, dict[str, str]] = {
     },
     4: {
         "defizit": "Schlecht auf Google auffindbar (Title/Meta/Indexierung)",
-        "funktion": "Profi-SEO + von Experten verfasste Inhalte; gelistet, wenn nach Ihrem Angebot gesucht wird",
-        "nutzen": "Wird organisch gefunden → qualifizierte Anfragen ohne Werbebudget",
+        "funktion": "Professionelle SEO + suchmaschinenoptimierte Inhalte",
+        "nutzen": "Wird gefunden, wenn nach dem Angebot gesucht wird → qualifizierte Anfragen ohne Werbebudget",
     },
     5: {
         "defizit": "Nicht KI-/Answer-Engine-bereit (kein strukturiertes Markup)",
-        "funktion": "Optimierung für KI-Suchmaschinen + strukturierte, gepflegte Inhalte",
+        "funktion": "Strukturierte Inhalte & Markup für KI-/Answer-Engines",
         "nutzen": "Auch in KI-Suchen (ChatGPT, Google AI) sichtbar → zukunftssicher auffindbar",
     },
     6: {
         "defizit": "Kaum Kontaktmöglichkeiten / veraltete Inhalte",
-        "funktion": "Kontakt- & Chat-Modul, Admin-Center, regelmässige Updates, optional E-Shop/Termin-Kalender",
+        "funktion": "Integrierte Kontakt-/Chat-Funktionen, einfache Pflege, aktuelle Inhalte",
         "nutzen": "Besucher werden zu Anfragen & Kunden; stets aktuelle Inhalte → mehr Abschlüsse",
     },
 }
@@ -56,7 +62,7 @@ _MAPPING: dict[int, dict[str, str]] = {
 # Never invent a deficit — this is the correct answer for modern sites.
 NO_DEFICIT_NOTE: str = (
     "Keine akuten Defizite — moderne Website über alle Dimensionen. "
-    "Ansatz: Stärken sichern (Wartung/Service-Boost) bzw. ausbauen (E-Shop/Termin-Kalender)."
+    "Ansatz: Stärken sichern (Pflege/Aktualität) bzw. ausbauen (E-Shop, Terminbuchung)."
 )
 
 

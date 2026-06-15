@@ -4,7 +4,7 @@ These tests MUST FAIL before the second sheet is implemented (RED phase).
 They serve as the specification for Task 3 (GREEN implementation).
 
 Requirements covered:
-- DIFF-04: output xlsx has 2 sheets; sheet 2 = "myWEBSITE-Argumente" with 3 headers
+- DIFF-04: output xlsx has 2 sheets; sheet 2 = "Verkaufsargumente" with 3 headers
            + one row per company in the same sorted order as "Leads"
 - DIFF-04: "Leads" sheet unchanged (regression guard)
 - DIFF-04: companion *_argumente.csv written alongside the main CSV
@@ -49,15 +49,15 @@ def test_second_sheet_structure(tmp_path):
     run(Config(input=str(inp), output=str(out)))
 
     wb = openpyxl.load_workbook(out)
-    assert wb.sheetnames == ["Leads", "myWEBSITE-Argumente"], (
-        f"Expected ['Leads', 'myWEBSITE-Argumente'], got {wb.sheetnames}"
+    assert wb.sheetnames == ["Leads", "Verkaufsargumente"], (
+        f"Expected ['Leads', 'Verkaufsargumente'], got {wb.sheetnames}"
     )
 
-    arg_ws = wb["myWEBSITE-Argumente"]
+    arg_ws = wb["Verkaufsargumente"]
     all_rows = list(arg_ws.iter_rows(values_only=True))
 
     # Header row check
-    assert list(all_rows[0]) == ["Kundenname", "Defizite", "myWEBSITE-Funktionen & Nutzen"], (
+    assert list(all_rows[0]) == ["Kundenname", "Defizite", "Lösung & Nutzen"], (
         f"Unexpected header: {all_rows[0]}"
     )
 
@@ -88,7 +88,7 @@ def test_second_sheet_same_sorted_order(tmp_path):
 
     wb = openpyxl.load_workbook(out)
     leads_ws = wb["Leads"]
-    arg_ws = wb["myWEBSITE-Argumente"]
+    arg_ws = wb["Verkaufsargumente"]
 
     # Get Kundenname column from both sheets (skip header row)
     leads_names = [r[0] for r in leads_ws.iter_rows(min_row=2, values_only=True)]
@@ -151,7 +151,7 @@ def test_csv_companion_argumente(tmp_path):
     text = companion.read_text(encoding="utf-8-sig")
     reader = csv.reader(text.splitlines())
     header_row = next(reader)
-    assert header_row == ["Kundenname", "Defizite", "myWEBSITE-Funktionen & Nutzen"], (
+    assert header_row == ["Kundenname", "Defizite", "Lösung & Nutzen"], (
         f"Unexpected CSV header: {header_row}"
     )
 
@@ -170,4 +170,4 @@ def test_csv_output_companion_argumente(tmp_path):
     text = companion.read_text(encoding="utf-8-sig")
     reader = csv.reader(text.splitlines())
     header_row = next(reader)
-    assert header_row == ["Kundenname", "Defizite", "myWEBSITE-Funktionen & Nutzen"]
+    assert header_row == ["Kundenname", "Defizite", "Lösung & Nutzen"]

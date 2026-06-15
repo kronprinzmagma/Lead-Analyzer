@@ -1,7 +1,6 @@
-"""Wave-0 RED tests for lead_analyzer.mywebsite — mapping + builder unit tests.
+"""Tests for lead_analyzer.sales_arguments — mapping + builder unit tests.
 
-These tests MUST FAIL before mywebsite.py is implemented (RED phase).
-They serve as the specification for Task 2 (GREEN implementation).
+They serve as the specification for the sales-argument builder.
 
 Requirements covered:
 - DIFF-04: each dimension's gap/severe verdict → its mapped Funktion+Nutzen
@@ -15,7 +14,7 @@ from __future__ import annotations
 
 import pytest
 
-from lead_analyzer.mywebsite import NO_DEFICIT_NOTE, _MAPPING, build_arguments
+from lead_analyzer.sales_arguments import NO_DEFICIT_NOTE, _MAPPING, build_arguments
 from lead_analyzer.models import DimensionVerdict, RowRecord, RowResult
 
 

@@ -18,7 +18,7 @@ from typing import Iterable
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment
 
-from . import mywebsite
+from . import sales_arguments
 from .models import RowRecord, RowResult
 
 # Exakte Header der zwei Score-Spalten (CLAUDE.md §3).
@@ -26,9 +26,9 @@ COL_BEDARF = "Website-Bedarf (1-5)"
 COL_ZAHL = "Zahlungskräftigkeit (1-5)"
 COL_REASON = "Begründung"
 
-# Second-sheet constants (Phase 9 / DIFF-04).
-SHEET_ARGUMENTE = "myWEBSITE-Argumente"
-ARG_HEADERS = ["Kundenname", "Defizite", "myWEBSITE-Funktionen & Nutzen"]
+# Second-sheet constants (Phase 9 / DIFF-04) — produkt-neutral benannt.
+SHEET_ARGUMENTE = "Verkaufsargumente"
+ARG_HEADERS = ["Kundenname", "Defizite", "Lösung & Nutzen"]
 
 # Tolerante Erkennung der URL-Spalte: Header (lowercase, getrimmt) gegen diese Marker.
 _URL_HINTS = ("url", "website", "webseite", "web", "homepage", "internet", "domain", "link", "site")
@@ -191,14 +191,14 @@ def _write_xlsx(path, headers, out_headers, ordered, reason_column, url_col=None
     for record, result in ordered:
         ws.append(_row_values(record, result, headers, reason_column))
 
-    # Phase 9 / DIFF-04: second sheet "myWEBSITE-Argumente" — same sorted order.
+    # Phase 9 / DIFF-04: second sheet "Verkaufsargumente" — same sorted order.
     # The "Leads" sheet code above stays byte-unchanged.
     arg_ws = wb.create_sheet(SHEET_ARGUMENTE)
     arg_ws.append(ARG_HEADERS)
     wrap = Alignment(wrap_text=True, vertical="top")
     for record, result in ordered:
         url_value = record.cells.get(url_col) if url_col else None
-        name, defizite, funktionen = mywebsite.build_arguments(record, result, url_value)
+        name, defizite, funktionen = sales_arguments.build_arguments(record, result, url_value)
         arg_ws.append([name, defizite, funktionen])
         r = arg_ws.max_row
         arg_ws.cell(row=r, column=2).alignment = wrap
@@ -221,7 +221,7 @@ def _write_csv(path, headers, out_headers, ordered, reason_column, url_col=None)
         w.writerow(ARG_HEADERS)
         for record, result in ordered:
             url_value = record.cells.get(url_col) if url_col else None
-            w.writerow(mywebsite.build_arguments(record, result, url_value))
+            w.writerow(sales_arguments.build_arguments(record, result, url_value))
 
 
 def run_log_path(output: str) -> str:
