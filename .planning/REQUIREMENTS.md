@@ -89,6 +89,6 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 | SETUP-01 | Phase 7 | Done |
 | SETUP-02 | Phase 7 | Done |
 | SETUP-03 | Phase 7 | Done |
-| DIFF-01 | Phase 8 | Planned |
+| DIFF-01 | Phase 8 | Done |
 
 **Coverage:** 28/28 v1 requirements mapped. DIFF-01 activated and mapped to Phase 8 (fully satisfies AC5 via authoritative Zefix lookup); DIFF-02/DIFF-03 deliberately unmapped (deferred).
