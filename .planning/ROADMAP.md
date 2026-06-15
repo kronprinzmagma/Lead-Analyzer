@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Cache + Concurrency** - Resumable per-URL cache and threaded fetch for hundreds of rows (completed 2026-06-14)
 - [x] **Phase 6: Optional PageSpeed (Dim 3) + Rate Limiting** - Skippable PSI tier with backoff; viewport heuristic fallback
 - [x] **Phase 7: Hardening + README + Full Sample Run** - <5-min setup, .env handling, full 42-row run with rationale
-- [ ] **Phase 8: Company Research (Zefix) for Zahlungskräftigkeit** - Authoritative legal form/status from the Swiss commercial register; gated like PageSpeed, degrades to the name-heuristic without creds
+- [x] **Phase 8: Company Research (Zefix) for Zahlungskräftigkeit** - Authoritative legal form/status from the Swiss commercial register; gated like PageSpeed, degrades to the name-heuristic without creds (completed 2026-06-15)
 
 ## Phase Details
 
@@ -137,7 +137,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Zefix calls share a per-run budget + concurrency cap + Retry-After backoff and a `zefix-v1` cache namespace with negative-hit caching; an API error never aborts the run (AC7, AC8).
 **Plans**: 2 plans
 - [x] 08-01-PLAN.md — ZefixClient (gated, budget/backoff) + ZefixFacts + Config fields
-- [ ] 08-02-PLAN.md — Zefix score composition (Group A + status modifier) + pipeline wiring + run-log
+- [x] 08-02-PLAN.md — Zefix score composition (Group A + status modifier) + pipeline wiring + run-log
 
 ## Progress
 
@@ -153,4 +153,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 5. Cache + Concurrency | 2/2 | Complete | 2026-06-14 |
 | 6. Optional PageSpeed + Rate Limiting | 5/5 | Complete | 2026-06-14 |
 | 7. Hardening + README + Full Sample Run | 5/5 | Complete | 2026-06-14 |
-| 8. Company Research (Zefix) for Zahlungskräftigkeit | 0/2 | Planned | — |
+| 8. Company Research (Zefix) for Zahlungskräftigkeit | 2/2 | Complete   | 2026-06-15 |
