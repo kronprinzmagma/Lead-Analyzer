@@ -26,7 +26,7 @@ from __future__ import annotations
 import re
 
 from .. import scoring
-from ..models import PaymentEstimate
+from ..models import PaymentEstimate, ZefixFacts
 
 
 # --------------------------------------------------------------------------- #
@@ -58,6 +58,39 @@ def _legal_form(name: str) -> tuple[int, list[str]]:
         if pattern.search(name):
             note = f"Rechtsform {label} aus Firmenname angenommen (Quelle: Firmenname)"
             return points, [note]
+    return 0, []
+
+
+def _legal_form_from_zefix(facts: ZefixFacts) -> tuple[int, list[str]]:
+    """Group A from authoritative Zefix data (DIFF-01). Maps legalForm.shortName.de to points.
+
+    Ersetzt _legal_form() wenn zefix_facts vorhanden — KEIN Name-Regex nötig.
+    Gleiche Punkte-Tabelle wie _LEGAL, aber Quelle ist autoritativ (AC5).
+    """
+    lf = facts.legal_form_de
+    if lf in ("AG", "SA"):
+        pts, label = 2, lf
+    elif lf in ("GmbH", "Sàrl", "Sarl", "KlG") or "&" in lf:
+        pts, label = 1, lf
+    elif lf == "Einzelunternehmen":
+        pts, label = 0, lf
+    else:
+        pts, label = 0, lf   # unbekannte Rechtsform -> konservativ 0, keine erfundenen Fakten (AC5)
+    note = f"Rechtsform {label} aus Zefix (autoritativ, Quelle: {facts.uid})"
+    return pts, [note]
+
+
+def _status_modifier(facts: "ZefixFacts | None") -> tuple[int, list[str]]:
+    """Post-aggregation penalty for non-active companies (DIFF-01/AC3).
+
+    Angewendet NACH _map_to_1_5: gelöschte AG scored tiefer als aktive GmbH (AC3).
+    """
+    if facts is None or facts.status == "ACTIVE":
+        return 0, []
+    if facts.status == "BEING_CANCELLED":
+        return -1, [f"Status: in Liquidation (Zefix, {facts.source_url})"]
+    if facts.status == "CANCELLED":
+        return -2, [f"Status: gelöscht (Zefix, {facts.source_url})"]
     return 0, []
 
 
@@ -138,26 +171,38 @@ def _map_to_1_5(total: int) -> int:
     return scoring.clamp_score(raw)       # garantiert int ∈ [1,5]
 
 
-def estimate(record, fr, soup, config) -> PaymentEstimate:
+def estimate(record, fr, soup, config, zefix_facts=None) -> PaymentEstimate:
     """Schätzt die Zahlungskräftigkeit 1..5 aus den Gruppen A+B+C.
 
-    Orchestriert A (Name) + B (Branche) + C (soup). Der `resolved`-Prädikat ist die
-    SINGLE SOURCE OF TRUTH: nur wenn IRGENDEIN echtes Signal vorlag, wird gemappt;
-    sonst konservativer Default 2 + 'dünne Datenlage'. Eine ALLEINIGE Notiz
+    Orchestriert A (Name/Zefix) + B (Branche) + C (soup). Der `resolved`-Prädikat
+    ist die SINGLE SOURCE OF TRUTH: nur wenn IRGENDEIN echtes Signal vorlag, wird
+    gemappt; sonst konservativer Default 2 + 'dünne Datenlage'. Eine ALLEINIGE Notiz
     ['Branche unbekannt'] (aus leerer ODER unbekannter nicht-leerer Branche) zählt
     NICHT als Auflösung — kein simpler `if not notes:`-Shortcut (der würde eine
     unbekannte Branche fälschlich als sichere 1 scoren). [CITED: resolved-predicate]
+
+    zefix_facts=None (Default): byte-identisch zur Phase-7-Baseline — alle bestehenden
+    Caller bleiben ohne Änderung kompatibel (DIFF-01).
     """
     name = str((record.cells.get("Kundenname") if record else None) or "")
     branche = str((record.cells.get("Branche") if record else None) or "")
-    pa, na = _legal_form(name)
+    # Group A: Zefix autoritativ > Name-Heuristik (DIFF-01)
+    if zefix_facts is not None:
+        pa, na = _legal_form_from_zefix(zefix_facts)
+    else:
+        pa, na = _legal_form(name)
     pb, nb = _branch_tier(branche)
     pc, nc = _size_signals(soup)
     notes = na + nb + nc
     # "dünne Datenlage": kein Namens-Suffix, Branche unbekannt (leer ODER unbekannt
     # nicht-leer -> beide ergeben nb == ['Branche unbekannt']), kein HTML-Signal.
-    resolved = bool(na) or pb > 0 or (nb and nb != ["Branche unbekannt"]) or bool(nc)
+    # zefix_facts vorhanden -> immer resolved (autoritäres Signal, AC5).
+    resolved = zefix_facts is not None or bool(na) or pb > 0 or (nb and nb != ["Branche unbekannt"]) or bool(nc)
     if not resolved:
         return PaymentEstimate(2, "Zahl (Schätzung): dünne Datenlage, konservativ geschätzt", [])
     zahl = _map_to_1_5(pa + pb + pc)
+    # Status-Modifier nach Aggregation anwenden (DIFF-01/AC3): gelöschte Firma scored tiefer
+    penalty, penalty_notes = _status_modifier(zefix_facts)
+    zahl = scoring.clamp_score(zahl + penalty)
+    notes = notes + penalty_notes
     return PaymentEstimate(zahl, "Zahl (Schätzung): " + "; ".join(notes), notes)
