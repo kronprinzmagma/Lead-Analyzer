@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 02-02-PLAN.md (fetch() seam + Dim-1 analyze_row wiring); 61 tests green.
-last_updated: "2026-06-15T13:58:41.040Z"
+stopped_at: Completed 09-01-PLAN.md (myWEBSITE-Argumente second sheet + mywebsite.py builder); 235 tests green.
+last_updated: "2026-06-15T00:00:00.000Z"
 last_activity: "2026-06-14 — Plan 06-05 wired Dimension 3 end-to-end: analyze_row builds Dim 3 from performance.analyze(fr, soup, ps_result); run() constructs exactly one shared PageSpeedClient via from_config (shared semaphore + budget), gated on use_pagespeed+key; ps_result gated on is_available()+fr.ok+fr.html (T-06-12); per-row boundary + ThreadPoolExecutor intact. Offline default byte-identical to Phase 5 for viewport-present rows (new regression test). BED-03 assertion updates for genuinely viewport-ABSENT fixtures (grep-confirmed); scoring bands untouched. Suite 200 passed; live run over data/sample_input.xlsx (no key -> PSI off) processed 42 rows offline-safe."
 progress:
-  total_phases: 8
-  completed_phases: 6
-  total_plans: 23
-  completed_plans: 21
-  percent: 91
+  total_phases: 9
+  completed_phases: 9
+  total_plans: 24
+  completed_plans: 23
+  percent: 100
 ---
 
 # Project State
@@ -60,6 +60,7 @@ Progress: [█████████░] 91%
 | Phase 06 P05 | 15 | 2 tasks | 3 files |
 | Phase 07 P02 | 6min | 2 tasks | 1 files |
 | Phase 08-company-research-zefix-for-zahlungskr-ftigkeit P02 | 10 minutes | 3 tasks | 3 files |
+| Phase 09-mywebsite-sales-arguments-sheet P01 | 15 min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,7 @@ Recent decisions affecting current work:
 - [Roadmap]: LLM layer is v2 (DIFF-02), not a v1 phase; folds into hardening only if a key is present.
 - [Phase ?]: PSI client (06-04) optional, default OFF without key; None on every failure, never raises
 - [Phase ?]: Phase 6 complete: Dim-3 wired via performance.analyze; one shared PSI client per run; offline output byte-identical to Phase 5 for viewport-present rows (BED-03/PERF-02).
+- [Phase 09]: myWEBSITE-Argumente second sheet: verbatim 6-row mapping constant; driver predicate identical to reasons.build (NACH-01); empty-verdicts+bedarf=5 → dim-1 argument; all-ok → NO_DEFICIT_NOTE; companion CSV written; 235 tests green.
 
 ### Roadmap Evolution
 
@@ -97,6 +99,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-15T13:58:41.034Z
-Stopped at: Completed 02-02-PLAN.md (fetch() seam + Dim-1 analyze_row wiring); 61 tests green.
+Last session: 2026-06-15
+Stopped at: Completed 09-01-PLAN.md — myWEBSITE-Argumente second sheet; 235 tests green. Phase 9 complete.
 Resume file: None
