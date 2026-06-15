@@ -135,7 +135,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Without credentials, `ZefixClient.from_config()` returns None and a full sample run is byte-identical to the current offline name-heuristic — zero-setup preserved (AC9).
   3. `lookup()` never raises and degrades to the heuristic on timeout / non-200 / zero match; an ambiguous (>1) match yields "nicht gefunden" rather than a wrong attribution, and capital/employees stay explicitly "unknown" — no invented facts (AC4, AC5).
   4. Zefix calls share a per-run budget + concurrency cap + Retry-After backoff and a `zefix-v1` cache namespace with negative-hit caching; an API error never aborts the run (AC7, AC8).
-**Plans**: TBD (run /gsd-plan-phase 8 to break down)
+**Plans**: 2 plans
+- [ ] 08-01-PLAN.md — ZefixClient (gated, budget/backoff) + ZefixFacts + Config fields
+- [ ] 08-02-PLAN.md — Zefix score composition (Group A + status modifier) + pipeline wiring + run-log
 
 ## Progress
 
@@ -151,4 +153,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 5. Cache + Concurrency | 2/2 | Complete | 2026-06-14 |
 | 6. Optional PageSpeed + Rate Limiting | 5/5 | Complete | 2026-06-14 |
 | 7. Hardening + README + Full Sample Run | 5/5 | Complete | 2026-06-14 |
-| 8. Company Research (Zefix) for Zahlungskräftigkeit | 0/0 | Not planned | — |
+| 8. Company Research (Zefix) for Zahlungskräftigkeit | 0/2 | Planned | — |
