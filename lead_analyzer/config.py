@@ -64,6 +64,9 @@ class Config:
     use_pagespeed: bool = True        # Phase 6
     pagespeed_concurrency: int = 2    # Phase 6: PSI-Semaphore-Kappe (< workers, AC8)
     pagespeed_budget: int = 400       # Phase 6: max. PSI-Calls pro Lauf (PERF-02)
+    use_zefix: bool = True            # gated via ZEFIX_USER/ZEFIX_PASSWORD presence (Phase 8)
+    zefix_concurrency: int = 2        # Semaphore cap (conservative for public-sector API)
+    zefix_budget: int = 200           # max Zefix calls per run (PERF-02)
     use_llm: bool = True              # v2 / DIFF-02
     timeout_connect: float = 5.0      # Phase 2
     timeout_read: float = 10.0        # Phase 2

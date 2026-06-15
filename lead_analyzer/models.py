@@ -42,6 +42,25 @@ class PaymentEstimate:
 
 
 @dataclass
+class ZefixFacts:
+    """Authoritative data from Zefix commercial register (AC5/NACH-01).
+
+    All fields JSON-native so __dict__ round-trips through cache.put/get.
+    source: "zefix" = authoritative lookup; "heuristik" = fallback (not set here,
+    used downstream as signal label); "nicht-gefunden" = no unambiguous match.
+    ZefixFacts is only constructed for the "zefix" case — None signals the other two.
+    """
+
+    legal_form_de: str        # "AG", "GmbH", "KlG", "Einzelunternehmen", etc.
+    legal_form_fr: str        # "SA", "Sàrl", etc. (Romandie companies)
+    status: str               # "ACTIVE" / "CANCELLED" / "BEING_CANCELLED"
+    uid: str                  # "CHE-123.456.789" — cited as source in log
+    legal_seat: str           # commune name (not canton abbrev — only in CompanyFull)
+    source_url: str           # "https://www.zefix.admin.ch/de/search/entity/{ehraid}/info"
+    source: str = "zefix"     # always "zefix" when this object exists
+
+
+@dataclass
 class RowResult:
     """Bewertungsergebnis einer Zeile. Beide Scores sind immer 1..5 (AC2: nie leer)."""
     index: int
