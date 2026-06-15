@@ -11,6 +11,7 @@ verletzen.
 from __future__ import annotations
 
 import csv
+import json
 import os
 from typing import Iterable
 
@@ -188,3 +189,39 @@ def _write_csv(path, headers, out_headers, ordered, reason_column) -> None:
         writer.writerow(out_headers)
         for record, result in ordered:
             writer.writerow(_row_values(record, result, headers, reason_column))
+
+
+def run_log_path(output: str) -> str:
+    """Leitet den Lauf-Log-Pfad aus dem Ausgabepfad ab (gleicher Ordner/Stamm).
+
+    z.B. output/leads_scored.xlsx -> output/leads_scored.run.jsonl
+    """
+    base, _ = os.path.splitext(output)
+    return base + ".run.jsonl"
+
+
+def write_run_log(path: str, url_col: str, ordered: Iterable[tuple[RowRecord, RowResult]]) -> None:
+    """Schreibt ein JSONL-Lauf-Log — IMMER, unabhängig von der Begründungsspalte.
+
+    Ein Objekt pro Zeile mit beiden Scores plus den treibenden Signalen (Bedarf-
+    Dimensionen + Zahlungskräftigkeit-Annahmen). So bleibt die Nachvollziehbarkeit
+    (AC6) erhalten, selbst wenn die Excel-Begründungsspalte via --no-reason fehlt.
+    Eine Zeile mit untypisierbaren Werten darf das Log nicht killen (default=str, AC4).
+    """
+    os.makedirs(os.path.dirname(os.path.abspath(path)) or ".", exist_ok=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        for record, result in ordered:
+            entry = {
+                "index": record.index,
+                "url": record.cells.get(url_col),
+                "bedarf": int(result.bedarf),
+                "zahl": int(result.zahl),
+                "reason": result.reason or "",
+                "bedarf_signals": [
+                    {"dim": v.dim, "level": v.level, "reason": v.reason,
+                     "source": v.source, "dead": v.dead}
+                    for v in result.verdicts
+                ],
+                "zahl_signals": list(result.zahl_signals),
+            }
+            fh.write(json.dumps(entry, ensure_ascii=False, default=str) + "\n")

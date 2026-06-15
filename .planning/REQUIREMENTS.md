@@ -47,7 +47,7 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 - [x] **SETUP-03**: `.env` und Ausgaben werden nicht committet (.gitignore); Tool arbeitet lokal. *(CLAUDE.md §6)*
 
 ## v2 / Differentiators (deferred)
-- [ ] **DIFF-01**: Live-Zefix-Lookup (Handelsregister) zur Anreicherung der Zahlungskräftigkeit (Auth erst per Live-Probe klären). *(verschärft ZK-01)*
+- [ ] **DIFF-01**: Live-Zefix-Lookup (Handelsregister) zur Anreicherung der Zahlungskräftigkeit — autoritative Rechtsform + Status + Sitz statt Namens-Heuristik; gated über `ZEFIX_USER`/`ZEFIX_PASSWORD` (ohne Creds byte-identisch zum Offline-Lauf). **→ Phase 8 (aktiviert).** *(verschärft ZK-01, erfüllt AC5 vollständig)*
 - [ ] **DIFF-02**: LLM-Layer für qualitative Bewertung von Dimension 6 (Textqualität/Aktualität) — nur additiv, nur wenn Key vorhanden.
 - [ ] **DIFF-03**: Konfigurierbare Branchen→Tier-Tabelle, damit Sales Gewichte überschreiben kann.
 
@@ -89,5 +89,6 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 | SETUP-01 | Phase 7 | Done |
 | SETUP-02 | Phase 7 | Done |
 | SETUP-03 | Phase 7 | Done |
+| DIFF-01 | Phase 8 | Planned |
 
-**Coverage:** 28/28 v1 requirements mapped. v2/DIFF-* deliberately unmapped (deferred).
+**Coverage:** 28/28 v1 requirements mapped. DIFF-01 activated and mapped to Phase 8 (fully satisfies AC5 via authoritative Zefix lookup); DIFF-02/DIFF-03 deliberately unmapped (deferred).

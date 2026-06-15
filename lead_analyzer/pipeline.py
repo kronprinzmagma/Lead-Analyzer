@@ -54,6 +54,7 @@ def analyze_row(
             return RowResult(
                 record.index, bedarf=5, zahl=est.zahl,
                 reason=f"keine Website | {est.reason}",
+                zahl_signals=est.signals,
             )
         fr = fetch.fetch(candidates, config)         # wirft nie
         # parse-once: eine soup pro Zeile, geteilt von allen HTML-Dimensionen.
@@ -80,17 +81,19 @@ def analyze_row(
         return RowResult(
             record.index, bedarf=bedarf, zahl=est.zahl,
             reason=reasons.build(verdicts, payment=est), verdicts=verdicts,
+            zahl_signals=est.signals,
         )
     except Exception as e:                            # AC4-Boundary — der Lauf geht weiter
         # zahl defensiv schätzen — darf INNERHALB der Boundary NIE re-raisen.
         try:
             est = payment.estimate(record, None, None, config)
-            zahl, zreason = est.zahl, est.reason
+            zahl, zreason, zsignals = est.zahl, est.reason, est.signals
         except Exception:
-            zahl, zreason = 2, "Zahl (Schätzung): nicht ermittelbar"   # konservativ, AC4
+            zahl, zreason, zsignals = 2, "Zahl (Schätzung): nicht ermittelbar", []   # konservativ, AC4
         return RowResult(
             record.index, bedarf=5, zahl=zahl,
             reason=f"Fehler: {type(e).__name__} | {zreason}",
+            zahl_signals=zsignals,
         )
 
 
@@ -140,10 +143,20 @@ def run(config: Config) -> dict:
         write_csv=config.write_csv,
     )
 
+    # Lauf-Log IMMER schreiben — der nachvollziehbare Audit-Trail (AC6) hängt nie
+    # an der optionalen Begründungsspalte (Codex-Review Finding 3). Best-Effort:
+    # ein Log-Schreibfehler darf den bereits geschriebenen Output nicht entwerten.
+    log_path = table_io.run_log_path(config.output)
+    try:
+        table_io.write_run_log(log_path, url_col, ordered)
+    except OSError:
+        log_path = None
+
     return {
         "input": config.input,
         "output": config.output,
         "url_column": url_col,
         "rows_processed": len(records),
         "headers_in": headers,
+        "run_log": log_path,
     }

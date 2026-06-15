@@ -49,6 +49,7 @@ class RowResult:
     zahl: int                      # 1..5
     reason: str = ""               # Kurzbegründung (Begründungsspalte / Log)
     verdicts: list[DimensionVerdict] = field(default_factory=list)  # für Lauf-Log (AC6/AC11)
+    zahl_signals: list[str] = field(default_factory=list)  # Zahlungskräftigkeit-Treiber fürs Lauf-Log (AC6)
 
 
 @dataclass

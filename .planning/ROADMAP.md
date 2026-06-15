@@ -19,6 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Cache + Concurrency** - Resumable per-URL cache and threaded fetch for hundreds of rows (completed 2026-06-14)
 - [x] **Phase 6: Optional PageSpeed (Dim 3) + Rate Limiting** - Skippable PSI tier with backoff; viewport heuristic fallback
 - [x] **Phase 7: Hardening + README + Full Sample Run** - <5-min setup, .env handling, full 42-row run with rationale
+- [ ] **Phase 8: Company Research (Zefix) for Zahlungskräftigkeit** - Authoritative legal form/status from the Swiss commercial register; gated like PageSpeed, degrades to the name-heuristic without creds
 
 ## Phase Details
 
@@ -124,10 +125,22 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 07-04-PLAN.md — Verification: full suite (202) + reproducible no-key full run + Definition-of-Done sign-off
 - [x] 07-05-PLAN.md — Planning-state cleanup (REQUIREMENTS/ROADMAP traceability) + optional unreachable-reason dedup
 
+### Phase 8: Company Research (Zefix) for Zahlungskräftigkeit
+**Goal**: With Zefix credentials, each customer's Zahlungskräftigkeit is grounded in the official Swiss commercial register (authoritative legal form + status + canton), not guessed from the company name; without credentials the run is byte-identical to today's offline heuristic.
+**Mode:** mvp
+**Depends on**: Phase 4 (payment estimator), Phase 6 (client + budget/backoff patterns)
+**Requirements**: DIFF-01 (activated; refines ZK-01/ZK-02), NACH-01, PERF-02
+**Success Criteria** (what must be TRUE):
+  1. With `ZEFIX_USER`/`ZEFIX_PASSWORD` set, each customer is looked up in Zefix; the authoritative legal form + status replace the name-string guess in Zahlungskräftigkeit Group A, and the source (Zefix detail URL) + confidence (`zefix`/`heuristik`/`nicht-gefunden`) + resolved legal_form/status flow into the JSONL run-log (AC5, AC6).
+  2. Without credentials, `ZefixClient.from_config()` returns None and a full sample run is byte-identical to the current offline name-heuristic — zero-setup preserved (AC9).
+  3. `lookup()` never raises and degrades to the heuristic on timeout / non-200 / zero match; an ambiguous (>1) match yields "nicht gefunden" rather than a wrong attribution, and capital/employees stay explicitly "unknown" — no invented facts (AC4, AC5).
+  4. Zefix calls share a per-run budget + concurrency cap + Retry-After backoff and a `zefix-v1` cache namespace with negative-hit caching; an API error never aborts the run (AC7, AC8).
+**Plans**: TBD (run /gsd-plan-phase 8 to break down)
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -138,3 +151,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 5. Cache + Concurrency | 2/2 | Complete | 2026-06-14 |
 | 6. Optional PageSpeed + Rate Limiting | 5/5 | Complete | 2026-06-14 |
 | 7. Hardening + README + Full Sample Run | 5/5 | Complete | 2026-06-14 |
+| 8. Company Research (Zefix) for Zahlungskräftigkeit | 0/0 | Not planned | — |

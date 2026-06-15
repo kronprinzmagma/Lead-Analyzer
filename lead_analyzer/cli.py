@@ -78,6 +78,8 @@ def main(argv: list[str] | None = None) -> int:
         f"(URL-Spalte: '{summary['url_column']}').\n"
         f"  Ausgabe: {summary['output']}"
     )
+    if summary.get("run_log"):
+        print(f"  Lauf-Log: {summary['run_log']}")
     return 0
 
 

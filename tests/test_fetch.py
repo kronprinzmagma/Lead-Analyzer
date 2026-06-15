@@ -232,8 +232,10 @@ def test_byte_cap_stops_reading(monkeypatch):
     assert len(fr.html) < 2_100_000
 
 
-def test_4xx_response_stops_probing(monkeypatch):
-    """Eine echte HTTP-Antwort (auch 404) beendet das Varianten-Probing."""
+def test_4xx_keeps_probing_then_falls_back(monkeypatch):
+    """4xx beendet das Probing NICHT mehr: weitere Kandidaten werden getestet,
+    und liefert keiner etwas Brauchbares, gewinnt die erste 4xx als Fallback
+    (Codex-Review Finding 2)."""
     calls = []
 
     def fake_get(self, url, **kw):
@@ -244,7 +246,24 @@ def test_4xx_response_stops_probing(monkeypatch):
     fr = fetch.fetch(["https://a.ch/", "https://www.a.ch/"], _CFG)
     assert fr.status == 404
     assert fr.ok is False  # 404 ist nicht 200-399
-    assert calls == ["https://a.ch/"]  # nach erster echter Antwort gestoppt
+    assert fr.url == "https://a.ch/"  # erste (höchstpriore) 4xx als Fallback
+    assert calls == ["https://a.ch/", "https://www.a.ch/"]  # ALLE Kandidaten geprobt
+
+
+def test_4xx_apex_then_200_www(monkeypatch):
+    """Der eigentliche Gewinn: Apex liefert 404, 'www.' liefert 200 -> die 200
+    gewinnt, NICHT die frühe 404 (Codex-Review Finding 2)."""
+    def fake_get(self, url, **kw):
+        if url == "https://www.a.ch/":
+            return FakeResponse(status_code=200, url=url, body="<html><body>echt</body></html>")
+        return FakeResponse(status_code=404, url=url, body="<html><body>weg</body></html>")
+
+    _patch_get(monkeypatch, fake_get)
+    fr = fetch.fetch(["https://a.ch/", "https://www.a.ch/"], _CFG)
+    assert fr.ok is True
+    assert fr.status == 200
+    assert fr.url == "https://www.a.ch/"
+    assert "echt" in fr.html
 
 
 def test_fetch_never_raises_on_unexpected_exception(monkeypatch):

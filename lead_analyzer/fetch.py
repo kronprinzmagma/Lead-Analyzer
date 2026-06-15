@@ -145,8 +145,10 @@ def _fetch_network(candidates: list[str], config) -> FetchResult:
     `stream=True` + 2-MB-Body-Cap. SSL wird als Signal erfasst, nicht als Crash:
     bei `SSLError` (verify=True) wird dieselbe URL mit `verify=False` neu geholt,
     der Body bleibt lesbar, `ssl_ok=False` (Phase 3 wertet das). Jede requests-
-    Exception wird auf eine Notiz gemappt; eine echte HTTP-Antwort (auch 4xx/5xx)
-    beendet das Probing sofort (eine Antwort = Host existiert).
+    Exception wird auf eine Notiz gemappt; eine BRAUCHBARE Antwort (2xx/3xx)
+    beendet das Probing sofort. Eine 4xx/5xx-Antwort wird als Fallback gemerkt,
+    aber das Probing läuft weiter — so kann ein 'www.'-Kandidat die echte Seite
+    liefern, wenn der Apex 404/403 gibt (Codex-Review Finding 2).
 
     Phase 5: aus fetch() extrahiert (Körper unverändert); die cache-aside-Hülle
     in fetch() ruft diese Funktion nur bei einem Cache-Miss.
@@ -156,6 +158,8 @@ def _fetch_network(candidates: list[str], config) -> FetchResult:
     session.headers.update(_HEADERS)
     timeout = (config.timeout_connect, config.timeout_read)
     last_err = "nicht erreichbar"
+    fallback: FetchResult | None = None       # erste 4xx/5xx-Antwort; gewinnt nur,
+                                              # wenn KEIN Kandidat brauchbar antwortet
 
     try:
         for url in candidates:
@@ -189,7 +193,7 @@ def _fetch_network(candidates: list[str], config) -> FetchResult:
                     except Exception:
                         html = None
                         read_err = "Body-Lesefehler"
-                    return FetchResult(
+                    result = FetchResult(
                         url=url,
                         ok=(200 <= resp.status_code < 400),
                         status=resp.status_code,
@@ -200,7 +204,20 @@ def _fetch_network(candidates: list[str], config) -> FetchResult:
                         html=html,
                         error=read_err,
                     )
+                # 2xx/3xx = brauchbare Antwort -> sofort finalisieren (unverändert).
+                # 4xx/5xx -> NICHT sofort aufgeben: ein weiterer Kandidat (z.B.
+                # 'www.') kann die echte Seite liefern (Codex-Review Finding 2). Die
+                # erste solche Antwort als Fallback merken und weiterprobieren;
+                # liefert kein Kandidat etwas Brauchbares, gewinnt der Fallback.
+                if result.ok:
+                    return result
+                if fallback is None:
+                    fallback = result
+                last_err = f"HTTP {resp.status_code}"
+                break                          # diese URL erledigt (verify=False nur für SSL)
 
+        if fallback is not None:
+            return fallback                    # alle Kandidaten 4xx/5xx -> erste (höchstpriore) Antwort
         return FetchResult(
             url=candidates[0] if candidates else "",
             ok=False,
