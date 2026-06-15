@@ -15,7 +15,7 @@ import pytest
 from bs4 import BeautifulSoup
 
 from lead_analyzer.analyzers import payment          # RED: Modul fehlt bis Plan 02
-from lead_analyzer.models import PaymentEstimate, RowRecord
+from lead_analyzer.models import PaymentEstimate, RowRecord, ZefixFacts
 
 
 def _rec(name="", branche=""):
@@ -240,3 +240,58 @@ def test_legal_form_ag_beats_and_co_precedence():
     assert "AG" in est.reason
     # AG (hoch) + Garage (hoch) -> Top-Zahlungskraft
     assert est.zahl == 5
+
+
+# --------------------------------------------------------------------------- #
+# ZEFIX INTEGRATION — authoritative legal form + status modifier (08-02)      #
+# --------------------------------------------------------------------------- #
+
+def _facts(legal_form_de="AG", status="ACTIVE"):
+    """Helper: minimal ZefixFacts for payment tests."""
+    return ZefixFacts(
+        legal_form_de=legal_form_de,
+        legal_form_fr="SA",
+        status=status,
+        uid="CHE-123.456.789",
+        legal_seat="Zürich",
+        source_url="https://www.zefix.admin.ch/de/search/entity/12345678/info",
+    )
+
+
+def test_zefix_ag_active():
+    """DIFF-01/ZK-01: AG from Zefix (no AG in name) -> zahl=5, signal has 'Zefix' + 'autoritativ' + uid."""
+    # Name intentionally has NO "AG" token — proves Zefix path, not name regex
+    est = payment.estimate(_rec("Irgendwas Anonym", "Zahnarzt"), None, None, None, zefix_facts=_facts("AG", "ACTIVE"))
+    # AG=2 (Zefix) + Zahnarzt=2 (tier) + no soup -> total=4 -> _map_to_1_5(4)=5, no status penalty
+    assert est.zahl == 5
+    # Signal must mention Zefix and autoritativ and the uid
+    signal_text = " ".join(est.signals)
+    assert "Zefix" in signal_text
+    assert "autoritativ" in signal_text
+    assert "CHE-123.456.789" in signal_text
+    # Proof: name had no AG token -> AG points came from Zefix, not name regex
+    assert not any("Firmenname" in s for s in est.signals), \
+        "Signal should come from Zefix path, not name heuristic"
+
+
+def test_zefix_gmbh_cancelled():
+    """DIFF-01/ZK-01: GmbH CANCELLED -> pre-penalty=4, penalty=-2, clamp -> zahl=2, signal mentions status."""
+    est = payment.estimate(_rec("Irgendwas", "Zahnarzt"), None, None, None, zefix_facts=_facts("GmbH", "CANCELLED"))
+    # GmbH=1 + Zahnarzt=2 = 3 -> _map_to_1_5(3)=4; penalty -2 -> clamp to 2
+    assert est.zahl == 2
+    signal_text = " ".join(est.signals)
+    assert "Status" in signal_text
+    # Status signal must mention gelöscht or CANCELLED
+    assert "gelöscht" in signal_text or "CANCELLED" in signal_text
+    # source_url must appear in signals
+    assert "zefix.admin.ch" in signal_text
+
+
+def test_zefix_none_fallback():
+    """DIFF-01: zefix_facts=None -> byte-identical to the offline baseline (LOAD-BEARING)."""
+    rec = _rec("Muster AG", "Zahnarzt")
+    est_with_none = payment.estimate(rec, None, None, None, zefix_facts=None)
+    est_baseline  = payment.estimate(rec, None, None, None)
+    assert est_with_none.zahl    == est_baseline.zahl
+    assert est_with_none.reason  == est_baseline.reason
+    assert est_with_none.signals == est_baseline.signals
