@@ -151,7 +151,8 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A company with no deficits (modern site, Bedarf 1) gets an honest "keine akuten Defizite — Stärken halten" note instead of forced/empty arguments.
   4. The feature is fully offline/deterministic and adds no network calls; the existing "Leads" sheet (all original columns + two scores + sort) is byte-unchanged; CSV output still works (the argument sheet is xlsx-native — for CSV a companion `*_argumente.csv` is written or its absence is documented).
   5. Tests cover the dimension→feature/benefit mapping (each of the six dimensions) and the second-sheet structure/order.
-**Plans**: TBD (run /gsd-plan-phase 9 to break down)
+**Plans**: 1 plan
+- [ ] 09-01-PLAN.md — mywebsite.py mapping+builder, second "myWEBSITE-Argumente" sheet in table_io, companion CSV, Wave 0 tests
 
 ## Progress
 
@@ -168,4 +169,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 6. Optional PageSpeed + Rate Limiting | 5/5 | Complete | 2026-06-14 |
 | 7. Hardening + README + Full Sample Run | 5/5 | Complete | 2026-06-14 |
 | 8. Company Research (Zefix) for Zahlungskräftigkeit | 2/2 | Complete   | 2026-06-15 |
-| 9. myWEBSITE Sales Arguments Sheet | 0/0 | Not planned | — |
+| 9. myWEBSITE Sales Arguments Sheet | 0/1 | Planned | — |
