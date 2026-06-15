@@ -93,7 +93,7 @@ website makes:
 
 1. **Existence & substance** — does the site even load? Parked? Just a social-media profile?
 2. **Technical basis** — HTTPS/valid SSL, own domain instead of a free subdomain.
-3. **Mobile & performance** — responsive? (optional real Core Web Vitals via Google PageSpeed).
+3. **Mobile & performance** — responsive? (optional real Core Web Vitals via Google PageSpeed Insights, which runs Lighthouse).
 4. **Findability (SEO)** — title/meta description, canonical, robots/sitemap, indexability.
 5. **AI / answer-engine readiness** — structured markup (Schema.org/JSON-LD), Open Graph.
 6. **Content, freshness & conversion** — contact form, `tel:`/`mailto:`, legal notice, freshness.
@@ -167,7 +167,8 @@ Why these example scores are plausible is explained in
 
 ### Optional API keys (`.env`)
 
-Everything runs without keys. For real Core Web Vitals, add a free `PAGESPEED_API_KEY`
+Everything runs without keys. For real Core Web Vitals (LCP/CLS/TBT, measured by Lighthouse
+via the Google PageSpeed Insights API), add a free `PAGESPEED_API_KEY`
 (`cp .env.example .env`); without it, dimension 3 falls back to the viewport heuristic. `.env`,
 `output/`, and `cache/` are gitignored and never committed — the tool works locally, no company
 data is published.
