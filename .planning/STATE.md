@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 
 ## Current Position
 
-Phase: 8 of 8 (Company Research (Zefix) for Zahlungskräftigkeit) — NOT PLANNED
-Plan: none yet — run /gsd-plan-phase 8 to break down.
-Status: Phases 1–7 complete. Phase 8 added 2026-06-15 (activates DIFF-01, closes the AC5 gap from the Codex review). Also this session: two Codex-review fixes landed on the Phase-7 codebase (fetch www-fallback on 4xx/5xx; always-on JSONL run-log so AC6 holds under --no-reason) — 206 tests green.
+Phase: 8 of 8 (Company Research (Zefix) for Zahlungskräftigkeit) — PLANNED (verified), ready to execute
+Plan: 08-01 (gated ZefixClient + ZefixFacts + Config) wave 1, 08-02 (score composition + pipeline wiring + run-log) wave 2. RESEARCH.md (HIGH confidence, API contract verified vs OpenAPI spec) + VALIDATION.md (13 Wave-0 tests) + both PLAN.md done; plan-checker returned PLAN VERIFIED (Nyquist PASS).
+Status: Phases 1–7 complete. Phase 8 fully planned 2026-06-15 — next: /gsd-execute-phase 08. Also this session: two Codex-review fixes landed on the Phase-7 codebase (fetch www-fallback on 4xx/5xx; always-on JSONL run-log so AC6 holds under --no-reason) — 206 tests green. Repo made public (kronprinzmagma/Lead-Analyzer).
 Last activity: 2026-06-14 — Plan 06-05 wired Dimension 3 end-to-end: analyze_row builds Dim 3 from performance.analyze(fr, soup, ps_result); run() constructs exactly one shared PageSpeedClient via from_config (shared semaphore + budget), gated on use_pagespeed+key; ps_result gated on is_available()+fr.ok+fr.html (T-06-12); per-row boundary + ThreadPoolExecutor intact. Offline default byte-identical to Phase 5 for viewport-present rows (new regression test). BED-03 assertion updates for genuinely viewport-ABSENT fixtures (grep-confirmed); scoring bands untouched. Suite 200 passed; live run over data/sample_input.xlsx (no key -> PSI off) processed 42 rows offline-safe.
 
 Progress: [█████████░] 86%
