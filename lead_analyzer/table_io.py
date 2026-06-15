@@ -16,13 +16,19 @@ import os
 from typing import Iterable
 
 from openpyxl import Workbook, load_workbook
+from openpyxl.styles import Alignment
 
+from . import mywebsite
 from .models import RowRecord, RowResult
 
 # Exakte Header der zwei Score-Spalten (CLAUDE.md §3).
 COL_BEDARF = "Website-Bedarf (1-5)"
 COL_ZAHL = "Zahlungskräftigkeit (1-5)"
 COL_REASON = "Begründung"
+
+# Second-sheet constants (Phase 9 / DIFF-04).
+SHEET_ARGUMENTE = "myWEBSITE-Argumente"
+ARG_HEADERS = ["Kundenname", "Defizite", "myWEBSITE-Funktionen & Nutzen"]
 
 # Tolerante Erkennung der URL-Spalte: Header (lowercase, getrimmt) gegen diese Marker.
 _URL_HINTS = ("url", "website", "webseite", "web", "homepage", "internet", "domain", "link", "site")
@@ -144,12 +150,16 @@ def write_output(
     ordered: Iterable[tuple[RowRecord, RowResult]],
     reason_column: bool = True,
     write_csv: bool = False,
+    url_col: str | None = None,
 ) -> None:
     """Schreibt die Ausgabe. `ordered` = (RowRecord, RowResult) bereits sortiert.
 
     Original-Zellen werden 1:1 in Original-Spaltenreihenfolge geschrieben, danach
     die zwei (bzw. drei) neuen Spalten. Score-Werte als echte Integer (numerisch
     sortier-/filterbar in Excel).
+
+    url_col: Name der URL-Spalte (Phase 9). Wird an den Argument-Builder weitergegeben,
+    damit er bei fehlendem Kundenname auf die URL-Zelle zurückfallen kann.
     """
     ordered = list(ordered)
     out_headers = _output_headers(headers, reason_column)
@@ -157,11 +167,11 @@ def write_output(
 
     if path.lower().endswith(".csv") or write_csv:
         csv_path = path if path.lower().endswith(".csv") else os.path.splitext(path)[0] + ".csv"
-        _write_csv(csv_path, headers, out_headers, ordered, reason_column)
+        _write_csv(csv_path, headers, out_headers, ordered, reason_column, url_col=url_col)
         if not path.lower().endswith(".csv"):
-            _write_xlsx(path, headers, out_headers, ordered, reason_column)
+            _write_xlsx(path, headers, out_headers, ordered, reason_column, url_col=url_col)
     else:
-        _write_xlsx(path, headers, out_headers, ordered, reason_column)
+        _write_xlsx(path, headers, out_headers, ordered, reason_column, url_col=url_col)
 
 
 def _row_values(record: RowRecord, result: RowResult, headers: list[str], reason_column: bool) -> list[object]:
@@ -173,22 +183,45 @@ def _row_values(record: RowRecord, result: RowResult, headers: list[str], reason
     return values
 
 
-def _write_xlsx(path, headers, out_headers, ordered, reason_column) -> None:
+def _write_xlsx(path, headers, out_headers, ordered, reason_column, url_col=None) -> None:
     wb = Workbook()
     ws = wb.active
     ws.title = "Leads"
     ws.append(out_headers)
     for record, result in ordered:
         ws.append(_row_values(record, result, headers, reason_column))
+
+    # Phase 9 / DIFF-04: second sheet "myWEBSITE-Argumente" — same sorted order.
+    # The "Leads" sheet code above stays byte-unchanged.
+    arg_ws = wb.create_sheet(SHEET_ARGUMENTE)
+    arg_ws.append(ARG_HEADERS)
+    wrap = Alignment(wrap_text=True, vertical="top")
+    for record, result in ordered:
+        url_value = record.cells.get(url_col) if url_col else None
+        name, defizite, funktionen = mywebsite.build_arguments(record, result, url_value)
+        arg_ws.append([name, defizite, funktionen])
+        r = arg_ws.max_row
+        arg_ws.cell(row=r, column=2).alignment = wrap
+        arg_ws.cell(row=r, column=3).alignment = wrap
+
     wb.save(path)
 
 
-def _write_csv(path, headers, out_headers, ordered, reason_column) -> None:
+def _write_csv(path, headers, out_headers, ordered, reason_column, url_col=None) -> None:
     with open(path, "w", encoding="utf-8-sig", newline="") as fh:
         writer = csv.writer(fh)
         writer.writerow(out_headers)
         for record, result in ordered:
             writer.writerow(_row_values(record, result, headers, reason_column))
+
+    # Phase 9 / DIFF-04: companion *_argumente.csv next to the main CSV.
+    arg_path = os.path.splitext(path)[0] + "_argumente.csv"
+    with open(arg_path, "w", encoding="utf-8-sig", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(ARG_HEADERS)
+        for record, result in ordered:
+            url_value = record.cells.get(url_col) if url_col else None
+            w.writerow(mywebsite.build_arguments(record, result, url_value))
 
 
 def run_log_path(output: str) -> str:

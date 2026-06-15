@@ -158,6 +158,7 @@ def run(config: Config) -> dict:
         ordered,
         reason_column=config.reason_column,
         write_csv=config.write_csv,
+        url_col=url_col,
     )
 
     # Lauf-Log IMMER schreiben — der nachvollziehbare Audit-Trail (AC6) hängt nie
