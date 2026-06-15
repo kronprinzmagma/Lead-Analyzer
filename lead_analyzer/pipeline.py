@@ -21,12 +21,13 @@ from bs4 import BeautifulSoup
 from . import fetch, reasons, scoring, table_io
 from .analyzers import ai_readiness, content, existence, payment, performance, seo, technical
 from .clients.pagespeed import PageSpeedClient
+from .clients.zefix import ZefixClient
 from .config import Config
 from .models import RowRecord, RowResult
 
 
 def analyze_row(
-    record: RowRecord, url_col: str, config: Config, ps_client=None
+    record: RowRecord, url_col: str, config: Config, ps_client=None, zx_client=None
 ) -> RowResult:
     """Bewertet eine Zeile über alle sechs Dimensionen — netz-robust, wirft nie.
 
@@ -43,14 +44,27 @@ def analyze_row(
     PageSpeed-Client (oder None ohne Key/--no-pagespeed). Der Default None hält
     Direkt-Aufrufe (Tests) rückwärtskompatibel: ohne Client -> ps_result None ->
     Dim 3 fällt auf die viewport-Heuristik zurück (byte-identisch zu Phase 5).
+
+    `zx_client` (Keyword, Default None) ist der pro Lauf EINMAL gebaute, geteilte
+    ZefixClient (oder None ohne ZEFIX_USER/ZEFIX_PASSWORD -> byte-identisch zu Phase 7).
+    lookup() wirft NIE (Client-Vertrag); nur auf Normal- und Leer-URL-Pfad aufgerufen.
     """
+    def _zefix_facts():
+        """Zefix-Lookup: None wenn kein Client, Budget erschöpft, Name zu kurz, etc."""
+        if zx_client is None or not zx_client.is_available():
+            return None
+        raw_name = str(record.cells.get("Kundenname") or "")
+        canton_hint = str(record.cells.get("Kanton") or "")   # optionale Spalte
+        return zx_client.lookup(raw_name, canton_hint or None)  # wirft nie; <3 Zeichen -> None
+
     try:
         raw = record.cells.get(url_col)
         candidates = fetch.normalize(raw)
         if candidates is None:                       # leere URL -> KEIN Netz
             # zahl trotzdem echt schätzen (Name/Branche brauchen kein Netz); die
             # Begründung trägt 'keine Website' (Bedarf) plus die zahl-Schätzung.
-            est = payment.estimate(record, None, None, config)
+            zefix_facts = _zefix_facts()
+            est = payment.estimate(record, None, None, config, zefix_facts=zefix_facts)
             return RowResult(
                 record.index, bedarf=5, zahl=est.zahl,
                 reason=f"keine Website | {est.reason}",
@@ -77,7 +91,8 @@ def analyze_row(
             content.analyze(fr, soup),               # Dim 6 (neutral wenn soup None)
         ]
         bedarf = scoring.bedarf(verdicts)            # dead -> 5, sonst G/S-Bänder
-        est = payment.estimate(record, fr, soup, config)   # echte Zahlungskräftigkeit
+        zefix_facts = _zefix_facts()
+        est = payment.estimate(record, fr, soup, config, zefix_facts=zefix_facts)   # echte Zahlungskräftigkeit
         return RowResult(
             record.index, bedarf=bedarf, zahl=est.zahl,
             reason=reasons.build(verdicts, payment=est), verdicts=verdicts,
@@ -85,6 +100,7 @@ def analyze_row(
         )
     except Exception as e:                            # AC4-Boundary — der Lauf geht weiter
         # zahl defensiv schätzen — darf INNERHALB der Boundary NIE re-raisen.
+        # KEIN Zefix-Lookup hier: wir sind bereits in einer Fehlergrenze (T-08-08).
         try:
             est = payment.estimate(record, None, None, config)
             zahl, zreason, zsignals = est.zahl, est.reason, est.signals
@@ -109,6 +125,7 @@ def run(config: Config) -> dict:
     # nie pro Zeile. Die eine Instanz teilt Semaphore + Budget über alle Worker-Threads.
     # from_config liefert None ohne use_pagespeed/Key -> Offline-Lauf bleibt byte-identisch.
     ps_client = PageSpeedClient.from_config(config)
+    zx_client = ZefixClient.from_config(config)   # None ohne ZEFIX_USER/ZEFIX_PASSWORD -> byte-identischer Offline-Lauf
 
     # PERF-03: I/O-bound fan-out über Threads. Jeder Future schreibt GENAU einen
     # festen Index (futs[fut]) -> keine geteilte mutable Stelle (T-05-05). analyze_row
@@ -118,7 +135,7 @@ def run(config: Config) -> dict:
     results: list[RowResult | None] = [None] * len(records)
     workers = max(1, getattr(config, "workers", 8))
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        futs = {pool.submit(analyze_row, r, url_col, config, ps_client): i
+        futs = {pool.submit(analyze_row, r, url_col, config, ps_client, zx_client): i
                 for i, r in enumerate(records)}
         for fut in as_completed(futs):
             i = futs[fut]
