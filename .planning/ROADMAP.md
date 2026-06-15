@@ -136,7 +136,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `lookup()` never raises and degrades to the heuristic on timeout / non-200 / zero match; an ambiguous (>1) match yields "nicht gefunden" rather than a wrong attribution, and capital/employees stay explicitly "unknown" — no invented facts (AC4, AC5).
   4. Zefix calls share a per-run budget + concurrency cap + Retry-After backoff and a `zefix-v1` cache namespace with negative-hit caching; an API error never aborts the run (AC7, AC8).
 **Plans**: 2 plans
-- [ ] 08-01-PLAN.md — ZefixClient (gated, budget/backoff) + ZefixFacts + Config fields
+- [x] 08-01-PLAN.md — ZefixClient (gated, budget/backoff) + ZefixFacts + Config fields
 - [ ] 08-02-PLAN.md — Zefix score composition (Group A + status modifier) + pipeline wiring + run-log
 
 ## Progress

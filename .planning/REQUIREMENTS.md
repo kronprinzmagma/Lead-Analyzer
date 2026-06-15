@@ -47,7 +47,7 @@ Quelle der Wahrheit: `CLAUDE.md` (bindende Akzeptanzkriterien AC1–AC11) + `doc
 - [x] **SETUP-03**: `.env` und Ausgaben werden nicht committet (.gitignore); Tool arbeitet lokal. *(CLAUDE.md §6)*
 
 ## v2 / Differentiators (deferred)
-- [ ] **DIFF-01**: Live-Zefix-Lookup (Handelsregister) zur Anreicherung der Zahlungskräftigkeit — autoritative Rechtsform + Status + Sitz statt Namens-Heuristik; gated über `ZEFIX_USER`/`ZEFIX_PASSWORD` (ohne Creds byte-identisch zum Offline-Lauf). **→ Phase 8 (aktiviert).** *(verschärft ZK-01, erfüllt AC5 vollständig)*
+- [x] **DIFF-01**: Live-Zefix-Lookup (Handelsregister) zur Anreicherung der Zahlungskräftigkeit — autoritative Rechtsform + Status + Sitz statt Namens-Heuristik; gated über `ZEFIX_USER`/`ZEFIX_PASSWORD` (ohne Creds byte-identisch zum Offline-Lauf). **→ Phase 8 (aktiviert).** *(verschärft ZK-01, erfüllt AC5 vollständig)*
 - [ ] **DIFF-02**: LLM-Layer für qualitative Bewertung von Dimension 6 (Textqualität/Aktualität) — nur additiv, nur wenn Key vorhanden.
 - [ ] **DIFF-03**: Konfigurierbare Branchen→Tier-Tabelle, damit Sales Gewichte überschreiben kann.
 
