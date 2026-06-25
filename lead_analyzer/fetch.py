@@ -132,7 +132,12 @@ def fetch(candidates: list[str], config) -> FetchResult:
         if cached is not None:
             return FetchResult.from_dict(cached)   # KEIN Netz, KEINE Session
     fr = _fetch_network(candidates, config)
-    if use_cache and key is not None:
+    # Nur cachen, wenn der Host tatsächlich geantwortet hat (status gesetzt) — also
+    # Erfolge UND stabile 4xx/5xx. Transiente Fehler (Timeout/Connection/DNS -> status
+    # None) werden NICHT gecacht, sonst pinnt ein kurzer Ausfall den Kunden dauerhaft
+    # auf "nicht erreichbar"/Bedarf 5 (Codex-Review P1). Spiegelt die "nur Erfolg +
+    # stabile Negative cachen"-Logik von PageSpeed/Zefix.
+    if use_cache and key is not None and fr.status is not None:
         cache.put(key, fr.to_dict())               # atomar, inkrementell (AC7)
     return fr
 

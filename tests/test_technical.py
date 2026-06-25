@@ -37,6 +37,28 @@ def test_invalid_ssl_is_severe():
     assert "SSL" in v.reason
 
 
+def test_unreachable_does_not_fabricate_ssl_signal():
+    """P3 (Codex-Review): bei kompletter Nichterreichbarkeit (status None) ist
+    ssl_ok=False nur der Default — es darf KEIN 'ungültiges SSL-Zertifikat'
+    behauptet werden (keine erfundenen Fakten in der Begründung). Der Dead-Override
+    hält den Bedarf trotzdem auf 5; nur die Dim-2-Notiz bleibt ehrlich."""
+    fr = make_fetch_result(
+        final_url="https://naehatelier-sutter/", ssl_ok=False,
+        status=None, ok=False, html=None, error="nicht erreichbar",
+    )
+    v = technical.analyze(fr)
+    assert v.level == "ok"                       # kein Mangel behauptet
+    assert "ungültiges SSL" not in v.reason      # kein erfundenes Zertifikat-Faktum (P3)
+    assert "gültiges SSL" not in v.reason         # auch KEIN erfundenes 'gültiges SSL' (symmetrisch)
+    assert "nicht erreichbar" in v.reason         # ehrlich: nicht messbar
+    # Gegenprobe 1: Host hat geantwortet (status gesetzt) + ssl_ok False -> Mangel bleibt.
+    fr2 = make_fetch_result(final_url="https://firma.ch/", ssl_ok=False, status=200)
+    assert "ungültiges SSL-Zertifikat" in technical.analyze(fr2).reason
+    # Gegenprobe 2: erreichter, gesunder Host -> volle ok-Aussage mit 'gültiges SSL'.
+    fr3 = make_fetch_result(final_url="https://firma.ch/", ssl_ok=True, status=200)
+    assert "gültiges SSL" in technical.analyze(fr3).reason
+
+
 # ---------- Gratis-Subdomain -> severe ----------
 
 @pytest.mark.parametrize(

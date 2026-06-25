@@ -181,11 +181,19 @@ Why these example scores are plausible is explained in
 
 ### Optional API keys (`.env`)
 
-Everything runs without keys. For real Core Web Vitals (LCP/CLS/TBT, measured by Lighthouse
-via the Google PageSpeed Insights API), add a free `PAGESPEED_API_KEY`
-(`cp .env.example .env`); without it, dimension 3 falls back to the viewport heuristic. `.env`,
-`output/`, and `cache/` are gitignored and never committed — the tool works locally, no company
-data is published.
+Everything runs without keys, but two optional credentials make two dimensions stronger.
+Copy the template first (`cp .env.example .env`) and fill in what you have:
+
+- **`PAGESPEED_API_KEY`** (free, from Google) → **dimension 3** measures real Core Web Vitals
+  (LCP/CLS/TBT) via Lighthouse. *Without it, dimension 3 uses a lighter heuristic — it only
+  checks the mobile viewport tag, not actual performance — so for a strict "all of dimensions
+  1–4 really measured" run, this key is recommended.*
+- **`ZEFIX_USER` + `ZEFIX_PASSWORD`** (both required; request access at `zefix@bj.admin.ch`) →
+  **purchasing power** is grounded in the Swiss commercial register (authoritative legal form +
+  status). Without them it falls back to the documented name/industry heuristic.
+
+`.env`, `output/`, and `cache/` are gitignored and never committed — **put secrets only in `.env`,
+never in the committed `.env.example`** — the tool works locally, no company data is published.
 
 ### Tests
 

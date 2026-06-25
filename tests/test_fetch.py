@@ -284,6 +284,44 @@ def test_fetch_empty_candidates_is_safe():
     assert fr.html is None
 
 
+# ---------- P1 (Codex-Review): transiente Fehler NICHT cachen ----------
+
+def test_transient_failure_is_not_cached(monkeypatch):
+    """Ein Timeout/Connection-Error (status None) darf NICHT gecacht werden — sonst
+    pinnt ein kurzer Ausfall den Kunden dauerhaft auf 'nicht erreichbar'/Bedarf 5.
+    Der zweite Lauf MUSS erneut ans Netz (kein Cache-Hit)."""
+    calls = []
+
+    def fake_get(self, url, **kw):
+        calls.append(url)
+        raise requests.exceptions.ReadTimeout("transient")
+
+    _patch_get(monkeypatch, fake_get)
+    cands = ["https://transient.ch/"]
+    fr1 = fetch.fetch(cands, _CFG)
+    assert fr1.status is None and fr1.ok is False
+    n_after_first = len(calls)
+    fetch.fetch(cands, _CFG)                     # zweiter Lauf
+    assert len(calls) > n_after_first, "transienter Fehler wurde fälschlich gecacht"
+
+
+def test_stable_http_response_is_cached(monkeypatch):
+    """Gegenprobe zu P1: eine echte HTTP-Antwort (auch 404) ist STABIL -> gecacht;
+    der zweite Lauf trifft den Cache ohne neuen Netz-Call."""
+    calls = []
+
+    def fake_get(self, url, **kw):
+        calls.append(url)
+        return FakeResponse(status_code=404, url=url, body="<html><body>weg</body></html>")
+
+    _patch_get(monkeypatch, fake_get)
+    cands = ["https://stable404.ch/"]
+    fetch.fetch(cands, _CFG)
+    n = len(calls)
+    fetch.fetch(cands, _CFG)                     # zweiter Lauf -> Cache-Hit erwartet
+    assert len(calls) == n, "stabile 4xx sollte gecacht sein (kein zweiter Netz-Call)"
+
+
 # ---------- Review-Fixes: M1 (Response schliessen) + L2 (Lesefehler != tot) ----------
 
 def test_response_is_closed_after_fetch(monkeypatch):

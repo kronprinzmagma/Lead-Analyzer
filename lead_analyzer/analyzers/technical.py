@@ -45,6 +45,7 @@ def analyze(fr) -> DimensionVerdict:
     parts = urlsplit(fr.final_url or fr.url or "")
     host = parts.netloc.lower().removeprefix("www.")
     scheme = parts.scheme.lower()
+    reached = fr.status is not None   # Host hat real eine HTTP-Antwort geliefert
 
     notes: list[str] = []
 
@@ -52,15 +53,25 @@ def analyze(fr) -> DimensionVerdict:
     if scheme == "http":
         notes.append("kein HTTPS")
 
-    # 2) Ungültiges SSL-Zertifikat (fetch fiel auf verify=False zurück).
-    if fr.ssl_ok is False:
+    # 2) Ungültiges SSL-Zertifikat — NUR behaupten, wenn der Host real geantwortet hat
+    #    (status gesetzt) UND der Fetch auf verify=False zurückfiel. Bei kompletter
+    #    Nichterreichbarkeit ist ssl_ok=False nur der Default, KEIN gemessenes Faktum
+    #    (Codex-Review P3: keine erfundenen Fakten in der Begründung).
+    if fr.ssl_ok is False and reached:
         notes.append("ungültiges SSL-Zertifikat")
 
-    # 3) Gratis-/Baukasten-Subdomain statt eigener Domain.
+    # 3) Gratis-/Baukasten-Subdomain statt eigener Domain (rein aus dem Hostnamen
+    #    messbar, auch ohne Erreichbarkeit).
     d = _is_free_subdomain(host)
     if d:
         notes.append(f"Gratis-Subdomain {d}, keine eigene Domain")
 
     if notes:
         return DimensionVerdict(2, "severe", "; ".join(notes), "html")
-    return DimensionVerdict(2, "ok", "eigene Domain, HTTPS, gültiges SSL", "html")
+    # Kein Mangel gefunden. Bei einem nie erreichten Host dürfen wir SSL-Gültigkeit
+    # NICHT behaupten (keine erfundenen Fakten, Codex-Review P3, symmetrisch); sonst
+    # die volle ok-Aussage. Der Bedarf wird ohnehin per Dead-Override (Dim 1) auf 5
+    # gesetzt — diese Notiz bleibt nur ehrlich.
+    if reached:
+        return DimensionVerdict(2, "ok", "eigene Domain, HTTPS, gültiges SSL", "html")
+    return DimensionVerdict(2, "ok", "technische Basis nicht messbar (Host nicht erreichbar)", "html")
