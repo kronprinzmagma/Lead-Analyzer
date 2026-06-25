@@ -116,7 +116,9 @@ one most urgently). The full rubric with every measurement signal is in
 
 ### Purchasing power (1–5) — higher = more spending power = more worthwhile sale
 
-A documented estimate from three public signals:
+Primarily from the **commercial register (Zefix)** — the switch is purely credential-driven, no
+code change. Until that access is live, it falls back, by the same graceful-degradation principle
+as PageSpeed, to a documented estimate from three public signals:
 
 - **Legal form** from the company name (AG / GmbH / sole proprietorship).
 - **Industry spending power** (which industry, how strong typically).
