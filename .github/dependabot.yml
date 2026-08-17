@@ -1,0 +1,29 @@
+# Dependabot — einziges Dependency-Tooling in diesem Repo (Entscheid 2026-08-14).
+#
+# Das Repo hat nur requirements.txt, kein Lockfile — daher package-ecosystem "pip".
+# Die groups-Bloecke buendeln Updates zu wenigen PRs statt einem pro Advisory.
+
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "Europe/Zurich"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      python-minor-patch:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
