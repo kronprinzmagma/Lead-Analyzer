@@ -1,8 +1,8 @@
 # Lead-Analyzer — Laufzeit-Abhängigkeiten
 # Installation:  python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
-openpyxl>=3.1        # Excel-I/O (kein pandas: erhält Spaltentypen unverändert, AC2)
-requests>=2.31       # HTTP-Abruf der Kunden-Websites (ab Phase 2)
-beautifulsoup4>=4.12 # HTML-Parsing für die Bedarf-Dimensionen (ab Phase 3)
+openpyxl>=3.1.5        # Excel-I/O (kein pandas: erhält Spaltentypen unverändert, AC2)
+requests>=2.34.2       # HTTP-Abruf der Kunden-Websites (ab Phase 2)
+beautifulsoup4>=4.15.0 # HTML-Parsing für die Bedarf-Dimensionen (ab Phase 3)
 
 # Entwicklung/Tests (optional):
 # pytest>=8
