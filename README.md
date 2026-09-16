@@ -143,7 +143,7 @@ as PageSpeed, to a documented estimate from three public signals:
   external APIs use retry/backoff against rate limits.
 - **Transparency over elegance.** Scores come from deterministic, documented heuristics (no LLM
   judgment in the scoring path) — every score is traceable to its signals.
-- **205 tests**, all green — including edge cases (empty URL, broken URL, parked domain).
+- **238 tests**, all green — including edge cases (empty URL, broken URL, parked domain).
 
 ---
 
@@ -215,6 +215,6 @@ lead_analyzer/
   cache.py           per-URL on-disk cache
   table_io.py        Excel/CSV in & out
 docs/                scoring rubric + sample-run rationale
-tests/               205 tests
+tests/               238 tests
 data/                sample_input.xlsx
 ```
