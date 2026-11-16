@@ -22,7 +22,6 @@ from __future__ import annotations
 
 import threading
 
-import pytest
 import requests
 
 from lead_analyzer import cache

@@ -49,7 +49,7 @@ def test_stable_sort_desc_and_lossless():
         RowResult(3, bedarf=5, zahl=5),
         RowResult(4, bedarf=1, zahl=1),
     ]
-    ordered = scoring.stable_sort(list(zip(recs, results)))
+    ordered = scoring.stable_sort(list(zip(recs, results, strict=True)))
     assert len(ordered) == len(recs)  # nichts verloren
     order_idx = [rec.index for rec, _ in ordered]
     # Erwartung: (5,5)->3, (5,1)->1, (3,4)->2, (3,2)->0, (1,1)->4
@@ -59,7 +59,7 @@ def test_stable_sort_desc_and_lossless():
 def test_stable_sort_tiebreak_keeps_original_order():
     recs = [RowRecord(i, {}) for i in range(3)]
     results = [RowResult(i, bedarf=4, zahl=3) for i in range(3)]  # alle gleich
-    ordered = scoring.stable_sort(list(zip(recs, results)))
+    ordered = scoring.stable_sort(list(zip(recs, results, strict=True)))
     assert [rec.index for rec, _ in ordered] == [0, 1, 2]
 
 

@@ -19,7 +19,7 @@ import pytest
 from lead_analyzer import fetch, scoring
 from lead_analyzer.analyzers import existence, payment
 from lead_analyzer.config import Config
-from lead_analyzer.models import RowRecord, RowResult
+from lead_analyzer.models import RowRecord
 from lead_analyzer.pipeline import analyze_row, run
 
 from conftest import make_fetch_result

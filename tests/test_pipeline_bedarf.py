@@ -11,7 +11,6 @@ KEIN Test fasst das Netz an: `fetch.fetch` wird pro Test durch
 
 from __future__ import annotations
 
-import pytest
 
 from bs4 import BeautifulSoup
 

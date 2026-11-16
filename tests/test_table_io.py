@@ -13,10 +13,8 @@ Requirements covered:
 from __future__ import annotations
 
 import csv
-from pathlib import Path
 
 import openpyxl
-import pytest
 
 from lead_analyzer.config import Config
 from lead_analyzer.pipeline import run

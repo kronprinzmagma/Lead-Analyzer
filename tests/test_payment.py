@@ -15,7 +15,7 @@ import pytest
 from bs4 import BeautifulSoup
 
 from lead_analyzer.analyzers import payment          # RED: Modul fehlt bis Plan 02
-from lead_analyzer.models import PaymentEstimate, RowRecord, ZefixFacts
+from lead_analyzer.models import RowRecord, ZefixFacts
 
 
 def _rec(name="", branche=""):
