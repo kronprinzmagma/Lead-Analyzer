@@ -145,7 +145,7 @@ def run(config: Config) -> dict:
     if any(r is None for r in results):
         raise RuntimeError("Pool hat eine Zeile verloren!")
 
-    pairs = list(zip(records, results))
+    pairs = list(zip(records, results, strict=True))
     ordered = scoring.stable_sort(pairs)
 
     # AC2-Invariante: keine Zeile verloren.
