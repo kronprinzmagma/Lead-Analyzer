@@ -18,7 +18,7 @@ from typing import Iterable
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment
 
-from . import sales_arguments
+from . import sales_arguments, scoring
 from .models import RowRecord, RowResult
 
 # Exakte Header der zwei Score-Spalten (CLAUDE.md §3).
@@ -176,7 +176,8 @@ def write_output(
 
 def _row_values(record: RowRecord, result: RowResult, headers: list[str], reason_column: bool) -> list[object]:
     values: list[object] = [record.cells.get(h) for h in headers]
-    values.append(int(result.bedarf))
+    # None = «nicht bewertbar» (Abruf blockiert): sichtbarer Vermerk statt leerer Zelle.
+    values.append(int(result.bedarf) if result.bedarf is not None else scoring.NICHT_BEWERTBAR)
     values.append(int(result.zahl))
     if reason_column:
         values.append(result.reason or "")
@@ -247,7 +248,8 @@ def write_run_log(path: str, url_col: str, ordered: Iterable[tuple[RowRecord, Ro
             entry = {
                 "index": record.index,
                 "url": record.cells.get(url_col),
-                "bedarf": int(result.bedarf),
+                "bedarf": int(result.bedarf) if result.bedarf is not None else None,
+                "bewertbar": result.bedarf is not None,
                 "zahl": int(result.zahl),
                 "reason": result.reason or "",
                 "bedarf_signals": [

@@ -75,6 +75,10 @@ def analyze_row(
         # Bei unlesbarem Body (None) bleiben Dim 4/5/6 neutral (0 Gap-Punkte) ->
         # ein 403/Block kippt NICHT auf Bedarf 5 (Invariante by construction).
         soup = BeautifulSoup(fr.html, "html.parser") if fr.html else None
+        # JavaScript-Hülle (Single-Page-App): Text, Kontakt, Impressum und Markup stehen
+        # erst im Browser -> Dim 5/6 nicht aus dem leeren HTML beurteilen (neutral wie
+        # ohne Body). Dim 1 meldet die Hülle selbst, Dim 4 prüft die Kopfdaten weiter.
+        body_soup = None if existence.is_js_shell(soup) else soup
         # Dim 3 (Mobile & Performance): PSI nur ANFRAGEN, wenn ein Client da ist,
         # er verfügbar ist (Key + Budget) UND der Fetch nutzbar war (T-06-12: tote/
         # blockierte Zeilen treiben kein Budget). Sonst ps_result None -> Heuristik.
@@ -87,10 +91,11 @@ def analyze_row(
             technical.analyze(fr),                   # Dim 2 (auch ohne Body messbar)
             performance.analyze(fr, soup, ps_result),  # Dim 3 (viewport + optional PSI)
             seo.analyze(fr, soup),                   # Dim 4 (neutral wenn soup None)
-            ai_readiness.analyze(soup),              # Dim 5 (neutral wenn soup None)
-            content.analyze(fr, soup),               # Dim 6 (neutral wenn soup None)
+            ai_readiness.analyze(body_soup),         # Dim 5 (neutral bei None/JS-Hülle)
+            content.analyze(fr, body_soup),          # Dim 6 (neutral bei None/JS-Hülle)
         ]
-        bedarf = scoring.bedarf(verdicts)            # dead -> 5, sonst G/S-Bänder
+        # dead -> 5, sonst G/S-Bänder; blockiert -> None («nicht bewertbar»)
+        bedarf = scoring.bedarf(verdicts) if scoring.bewertbar(verdicts) else None
         zefix_facts = _zefix_facts()
         est = payment.estimate(record, fr, soup, config, zefix_facts=zefix_facts)   # echte Zahlungskräftigkeit
         return RowResult(

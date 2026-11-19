@@ -104,7 +104,11 @@ website makes:
 5. **AI / answer-engine readiness**: structured markup (Schema.org/JSON-LD), Open Graph.
 6. **Content, freshness & conversion**: contact form, `tel:`/`mailto:`, legal notice, freshness.
 
-**No reachable website → automatic score 5** (overrides everything: whoever has no website needs one most urgently). The full rubric with every measurement signal is in
+**No reachable website → automatic score 5** (overrides everything: whoever has no website needs one most urgently).
+**Fetch blocked by a protection filter** (403/406/429 or a challenge page) → the need column says
+`nicht bewertbar` instead of a score, and the row is sorted to the bottom. A JavaScript-only page
+(empty single-page-app shell) is not counted as thin content. Missing structured markup alone
+raises an otherwise good site to 2 at most. The full rubric with every measurement signal is in
 [`docs/scoring_website_bedarf.md`](docs/scoring_website_bedarf.md).
 
 ### Purchasing power (1–5): higher means more spending power and a more worthwhile sale
@@ -130,7 +134,7 @@ as PageSpeed, to a documented estimate from three public signals:
 - **Parallelized with throttle.** Fetches run over a `ThreadPoolExecutor` (`--workers`, default 8);
   external APIs use retry/backoff against rate limits.
 - **Transparency over elegance.** Scores come from deterministic, documented heuristics (no LLM judgment in the scoring path), and every score traces back to its signals.
-- **262 tests**, all green, including edge cases (empty URL, broken URL, parked domain) and a
+- **274 tests**, all green, including edge cases (empty URL, broken URL, parked domain) and a
   regression set of twelve invented sample sites with a fixed overall score (`tests/musterseiten/`).
 
 ---
@@ -210,6 +214,6 @@ lead_analyzer/
   cache.py           per-URL on-disk cache
   table_io.py        Excel/CSV in & out
 docs/                scoring rubric + sample-run rationale
-tests/               262 tests
+tests/               274 tests
 data/                sample_input.xlsx
 ```

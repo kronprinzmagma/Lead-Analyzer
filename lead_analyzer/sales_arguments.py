@@ -66,6 +66,12 @@ NO_DEFICIT_NOTE: str = (
 )
 
 
+# Note for rows whose website could not be rated (fetch blocked by a protection filter).
+NOT_RATED_NOTE: str = (
+    "Website nicht bewertbar (Abruf durch Schutzfilter blockiert) — bitte von Hand ansehen."
+)
+
+
 # ---------- Builder ----------
 
 def build_arguments(
@@ -100,6 +106,10 @@ def build_arguments(
         if not name:
             idx = record.index if record is not None else 0
             name = f"Zeile {idx + 1}"
+
+        # Nicht bewertbar (Abruf blockiert): keine Defizite erfinden, Handprüfung empfehlen.
+        if result.bedarf is None:
+            return (name, "", NOT_RATED_NOTE)
 
         # --- Deficit driver determination (NACH-01: verbatim reasons.py predicate) ---
         verdicts = result.verdicts or []

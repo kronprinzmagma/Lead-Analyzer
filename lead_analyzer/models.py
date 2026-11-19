@@ -26,6 +26,8 @@ class DimensionVerdict:
     source: str = "html"           # "html" | "pagespeed" | "crux" | "llm" | "heuristic-fallback"
     dead: bool = False             # explizites Maschinen-Flag: keine/defekte Website -> Bedarf-Override 5
                                    #   (entkoppelt die Score-Richtung vom Anzeige-Text, AC3)
+    unbewertbar: bool = False      # Abruf blockiert (Schutzfilter/Challenge) -> Website-Bedarf
+                                   #   «nicht bewertbar» statt Note (Entscheid Nils 2026-11-19)
 
 
 @dataclass
@@ -64,7 +66,7 @@ class ZefixFacts:
 class RowResult:
     """Bewertungsergebnis einer Zeile. Beide Scores sind immer 1..5 (AC2: nie leer)."""
     index: int
-    bedarf: int                    # 1..5
+    bedarf: int | None             # 1..5; None = «nicht bewertbar» (Abruf blockiert, Entscheid 2026-11-19)
     zahl: int                      # 1..5
     reason: str = ""               # Kurzbegründung (Begründungsspalte / Log)
     verdicts: list[DimensionVerdict] = field(default_factory=list)  # für Lauf-Log (AC6/AC11)

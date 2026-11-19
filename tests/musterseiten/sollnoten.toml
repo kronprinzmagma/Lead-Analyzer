@@ -2,8 +2,10 @@
 # höher = grösserer Bedarf). Alle Seiten sind erfunden.
 #
 # So bestätigst oder änderst du eine Note: soll_bedarf anpassen und
-# quelle = "bestaetigt" setzen. «vorschlag» = Note, die das Tool am 2026-11-19
-# vergeben hat, noch nicht von Nils bestätigt.
+# quelle = "bestaetigt" setzen. «vorschlag» = Note, die das Tool vergeben hat,
+# noch nicht von Nils bestätigt. soll_bedarf = "nicht bewertbar" heisst: das Tool
+# darf keine Note vergeben (z. B. Abruf durch Schutzfilter blockiert).
+# Alle zwölf Noten von Nils bestätigt am 2026-11-19 (02, 05 auf 2; 12 nicht bewertbar).
 # Weicht das Tool danach ab, schlägt der Test fehl und nennt die Begründung.
 # Heutige Noten anzeigen:  python tests/test_musterseiten.py
 
@@ -15,7 +17,7 @@ url = "https://www.muster-schreinerei.example/"
 status = 200
 html = "01_modern_kmu.html"
 soll_bedarf = 1
-quelle = "vorschlag"
+quelle = "bestaetigt"
 
 [[seite]]
 id = "02_solide_ohne_markup"
@@ -24,8 +26,8 @@ kunde = "Muster Schreinerei AG"
 url = "https://www.muster-schreinerei.example/"
 status = 200
 html = "02_solide_ohne_markup.html"
-soll_bedarf = 3
-quelle = "vorschlag"
+soll_bedarf = 2
+quelle = "bestaetigt"
 
 [[seite]]
 id = "03_veraltet_handwerker"
@@ -36,7 +38,7 @@ status = 200
 ssl_ok = false
 html = "03_veraltet_handwerker.html"
 soll_bedarf = 5
-quelle = "vorschlag"
+quelle = "bestaetigt"
 
 [[seite]]
 id = "04_duenner_einseiter"
@@ -46,7 +48,7 @@ url = "https://www.coiffeur-muster.example/"
 status = 200
 html = "04_duenner_einseiter.html"
 soll_bedarf = 4
-quelle = "vorschlag"
+quelle = "bestaetigt"
 
 [[seite]]
 id = "05_javascript_huelle"
@@ -55,8 +57,8 @@ kunde = "Muster Treuhand GmbH"
 url = "https://www.muster-treuhand.example/"
 status = 200
 html = "05_javascript_huelle.html"
-soll_bedarf = 4
-quelle = "vorschlag"
+soll_bedarf = 2
+quelle = "bestaetigt"
 
 [[seite]]
 id = "06_gratis_subdomain"
@@ -66,7 +68,7 @@ url = "https://gaertnerei-muster.wixsite.com/home"
 status = 200
 html = "06_gratis_subdomain.html"
 soll_bedarf = 3
-quelle = "vorschlag"
+quelle = "bestaetigt"
 
 [[seite]]
 id = "07_nur_social_media"
@@ -76,7 +78,7 @@ url = "https://www.facebook.com/baeckerei.muster.example"
 status = 200
 html = "07_nur_social_media.html"
 soll_bedarf = 4
-quelle = "vorschlag"
+quelle = "bestaetigt"
 
 [[seite]]
 id = "08_geparkt"
@@ -86,7 +88,7 @@ url = "https://muster-garage.example/"
 status = 200
 html = "08_geparkt.html"
 soll_bedarf = 5
-quelle = "vorschlag"
+quelle = "bestaetigt"
 
 [[seite]]
 id = "09_baustelle"
@@ -96,7 +98,7 @@ url = "https://www.muster-elektro.example/"
 status = 200
 html = "09_baustelle.html"
 soll_bedarf = 5
-quelle = "vorschlag"
+quelle = "bestaetigt"
 
 [[seite]]
 id = "10_nicht_erreichbar"
@@ -105,7 +107,7 @@ kunde = "Muster Sanitär AG"
 url = "https://www.muster-sanitaer.example/"
 fehler = "nicht erreichbar"
 soll_bedarf = 5
-quelle = "vorschlag"
+quelle = "bestaetigt"
 
 [[seite]]
 id = "11_ssl_ungueltig_noindex"
@@ -116,7 +118,7 @@ status = 200
 ssl_ok = false
 html = "11_ssl_ungueltig_noindex.html"
 soll_bedarf = 4
-quelle = "vorschlag"
+quelle = "bestaetigt"
 
 [[seite]]
 id = "12_blockiert_403"
@@ -125,5 +127,5 @@ kunde = "Muster Versicherung AG"
 url = "https://www.muster-versicherung.example/"
 status = 403
 html = "12_blockiert_403.html"
-soll_bedarf = 4
-quelle = "vorschlag"
+soll_bedarf = "nicht bewertbar"
+quelle = "bestaetigt"
