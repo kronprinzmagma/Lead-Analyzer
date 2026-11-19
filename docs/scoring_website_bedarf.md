@@ -33,3 +33,6 @@ Dimensionen 3–4 liefert die PageSpeed-Insights-API in einem Call; 1, 2, 5, 6 k
 - **Defekte/nicht erreichbare URL:** Score 5, Vermerk «nicht erreichbar» (vor Endurteil kurz prüfen, ob nur Schema/`www` fehlt).
 - **Nur Social-Media (Facebook/Instagram):** hoher Bedarf, eigener Vermerk «Social-only».
 - **Geparkte Domain/Platzhalter:** wie «keine Website».
+- **Abruf durch Schutzfilter blockiert** (HTTP 403/406/429 oder Challenge-Seite, z. B. «Just a moment…»): keine Note, Vermerk «nicht bewertbar»; Zeile am Schluss der Sortierung (Entscheid Nils 2026-11-19).
+- **JavaScript-Hülle** (Single-Page-App, ausgeliefertes HTML ohne Inhalt): nicht «dünn»; Dim 5/6 werden aus der Hülle nicht beurteilt, Dim 2–4 (Technik, viewport, Kopfdaten) schon (Entscheid 2026-11-19).
+- **Nur strukturiertes Markup fehlt** (Dim 5 einzige Lücke): höchstens Bedarf 2 (Entscheid 2026-11-19).

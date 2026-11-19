@@ -39,7 +39,10 @@ def build(verdicts: list[DimensionVerdict], payment: PaymentEstimate | None = No
     """
     score = scoring.bedarf(verdicts)
     drivers = [v for v in verdicts if v.level != "ok" or v.dead]
-    if not drivers:
+    if not scoring.bewertbar(verdicts):
+        why = "; ".join(v.reason for v in verdicts if v.unbewertbar)
+        bedarf_section = _cap(f"Website-Bedarf {scoring.NICHT_BEWERTBAR} ({why})", _MAX_LEN)
+    elif not drivers:
         bedarf_section = f"alle Dimensionen ok → Bedarf {score}"
     else:
         parts = [

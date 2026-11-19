@@ -39,7 +39,25 @@ def bedarf(verdicts: list[DimensionVerdict]) -> int:
     S = sum(1 for v in verdicts if v.level == "severe")
     g_score = 5 if G >= 7 else 4 if G >= 4 else 3 if G >= 2 else 2 if G == 1 else 1
     s_score = 5 if S >= 3 else 4 if S == 2 else 3 if S == 1 else 1
-    return max(g_score, s_score)
+    score = max(g_score, s_score)
+    # Fehlt einer sonst guten Seite NUR das strukturierte Markup (Dim 5, heuristisch
+    # gemessen), hebt das den Bedarf höchstens auf 2 (Entscheid Nils 2026-11-19).
+    lacking = [v for v in verdicts if v.level != "ok"]
+    if lacking and all(v.dim == 5 for v in lacking):
+        score = min(score, 2)
+    return score
+
+
+def bewertbar(verdicts: list[DimensionVerdict]) -> bool:
+    """False, wenn ein Befund die Seite als nicht bewertbar markiert (Abruf blockiert).
+
+    Dann gibt es keine Bedarf-Note, sondern den Vermerk «nicht bewertbar»
+    (Entscheid Nils 2026-11-19; Ausnahme zu AC2).
+    """
+    return not any(v.unbewertbar for v in verdicts)
+
+
+NICHT_BEWERTBAR = "nicht bewertbar"
 
 
 def clamp_score(value: int) -> int:
@@ -82,4 +100,8 @@ def stable_sort(pairs: list[tuple[RowRecord, RowResult]]) -> list[tuple[RowRecor
     Es wird eine Kopie der Ergebnisliste sortiert (nicht die Originalzeilen), und der
     Originalindex als letzter Schlüssel macht den Sort stabil und verlustfrei (AC2).
     """
-    return sorted(pairs, key=lambda p: (-p[1].bedarf, -p[1].zahl, p[0].index))
+    # Nicht bewertbare Zeilen (bedarf None) stehen am Schluss, untereinander nach Zahl.
+    return sorted(
+        pairs,
+        key=lambda p: (p[1].bedarf is None, -(p[1].bedarf or 0), -p[1].zahl, p[0].index),
+    )

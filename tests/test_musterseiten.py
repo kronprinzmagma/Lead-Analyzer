@@ -36,6 +36,7 @@ ORDNER = Path(__file__).parent / "musterseiten"
 SOLLNOTEN = ORDNER / "sollnoten.toml"
 STICHJAHR = 2026
 _QUELLEN = {"vorschlag", "bestaetigt"}
+NICHT_BEWERTBAR = "nicht bewertbar"   # Sollwert, wenn das Tool keine Note vergeben darf
 
 
 class _FesteZeit(_dt.datetime):
@@ -86,7 +87,7 @@ def test_sollnoten_datei_gueltig():
     ids = [s["id"] for s in seiten]
     assert len(set(ids)) == len(ids)
     for s in seiten:
-        assert s["soll_bedarf"] in range(1, 6), s["id"]
+        assert s["soll_bedarf"] in (*range(1, 6), NICHT_BEWERTBAR), s["id"]
         assert s["quelle"] in _QUELLEN, s["id"]
         if s.get("html"):
             assert (ORDNER / s["html"]).is_file(), s["id"]
@@ -95,8 +96,9 @@ def test_sollnoten_datei_gueltig():
 @pytest.mark.parametrize("seite", _seiten(), ids=lambda s: s["id"])
 def test_musterseite_hat_sollnote(seite):
     res = bewerte(seite)
-    assert res.bedarf == seite["soll_bedarf"], (
-        f"{seite['id']}: Soll {seite['soll_bedarf']} ({seite['quelle']}), Ist {res.bedarf}. "
+    ist = NICHT_BEWERTBAR if res.bedarf is None else res.bedarf
+    assert ist == seite["soll_bedarf"], (
+        f"{seite['id']}: Soll {seite['soll_bedarf']} ({seite['quelle']}), Ist {ist}. "
         f"Begründung: {res.reason}"
     )
 
@@ -104,6 +106,7 @@ def test_musterseite_hat_sollnote(seite):
 if __name__ == "__main__":
     for s in _seiten():
         r = bewerte(s)
-        mark = "" if r.bedarf == s["soll_bedarf"] else "  <-- abweichend"
-        print(f"{s['id']:<28} soll {s['soll_bedarf']} ({s['quelle']:<10}) ist {r.bedarf}{mark}")
+        ist = NICHT_BEWERTBAR if r.bedarf is None else r.bedarf
+        mark = "" if ist == s["soll_bedarf"] else "  <-- abweichend"
+        print(f"{s['id']:<28} soll {s['soll_bedarf']} ({s['quelle']:<10}) ist {ist}{mark}")
         print(f"    {r.reason}")

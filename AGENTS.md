@@ -54,7 +54,7 @@ Die Zahlungskräftigkeit lässt sich **nicht** aus der URL allein ableiten — s
 ## 4. Akzeptanzkriterien (bindend)
 
 - **AC1 — Vollständigkeit:** Das Tool verarbeitet die **ganze Liste**, nicht Stichproben; auch mehrere hundert Zeilen, ohne manuelles Eingreifen pro Zeile.
-- **AC2 — Output-Form:** Ausgabe = alle Original-Spalten unverändert + genau die zwei Score-Spalten (1–5, ganzzahlig). Keine leeren Scores.
+- **AC2 — Output-Form:** Ausgabe = alle Original-Spalten unverändert + genau die zwei Score-Spalten (1–5, ganzzahlig). Keine leeren Scores. Ausnahme (Entscheid Nils 2026-11-19): Blockiert ein Schutzfilter den Abruf (403/406/429 oder Challenge-Seite), steht im Website-Bedarf der Vermerk «nicht bewertbar» statt einer Note; solche Zeilen stehen am Schluss der Sortierung, die Zahlungskräftigkeit bleibt numerisch.
 - **AC3 — Score-Richtung:** Scores folgen exakt den Definitionen in Abschnitt 3 (höher = mehr Bedarf bzw. mehr Kaufkraft).
 - **AC4 — Robustheit:** Ungültige/fehlende URL, nicht erreichbare Seite, Timeout, geparkte Domain, Social-Media-only → **kein Absturz**; sinnvoller Score (bei «keine Website» = Bedarf hoch) + Vermerk.
 - **AC5 — Zahlungskräftigkeit aus öffentlichen Quellen:** Score 2 wird pro Kunde recherchiert/geschätzt; die genutzte Quelle bzw. die Annahme ist nachvollziehbar (Log oder Begründungsspalte). Keine erfundenen Fakten — fehlt die Datenlage, konservativ schätzen und kennzeichnen.

@@ -132,8 +132,9 @@ def test_block_403_is_neutral_not_5(monkeypatch):
             url="https://waf.ch/", final_url="https://waf.ch/", ssl_ok=True),
     )
     res = analyze_row(_rec("https://waf.ch"), _URL_COL, _CFG)
-    assert res.bedarf != 5
-    assert res.bedarf == 3
+    # Seit 2026-11-19 (Entscheid Nils): blockiert -> «nicht bewertbar» statt Note.
+    assert res.bedarf is None
+    assert "nicht bewertbar" in res.reason
     assert "blockiert" in res.reason
 
 
