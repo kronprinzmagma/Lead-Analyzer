@@ -11,8 +11,8 @@ Dies ist die EINZIGE Komponente, die das Netz berührt. Sie ist hart abgesichert
 - **Backoff mit Jitter, Retry-After-bewusst**: bei 429/5xx wird gekappt (3 Versuche) zurück-
   gestaffelt; der `sleep` ist INJIZIERT (Default `time.sleep`, Tests übergeben ein No-Op ->
   KEINE echten Wartezeiten).
-- **Eigener Cache-Namespace**: jedes Resultat wird unter `cache.key_for(["pagespeed-v1",
-  "mobile", url])` gecacht; ein Cache-Hit kostet WEDER Netz NOCH Budget. Fehler werden NICHT
+- **Eigener Cache-Namespace**: jedes Resultat wird unter `cache.key_for(["pagespeed-v2",
+  "mobile", url])` gecacht (v2 seit 2026-11-19: enthält auch die CrUX-Felddaten); ein Cache-Hit kostet WEDER Netz NOCH Budget. Fehler werden NICHT
   gecacht.
 - **None bei JEDEM Fehler, NIE ein Raise**: Timeout/non-200/malformed-JSON/429-nach-Retries/
   Budget-erschöpft -> `score()` liefert `None`. So kann ein PSI-Problem nie den Per-Zeilen-
@@ -113,7 +113,9 @@ class PageSpeedClient:
         Fehler werden NICHT gecacht (nur erfolgreiche Resultate).
         """
         # 1) Cache-Hit kostet weder Netz noch Budget (Pitfall 3, AC7/AC8).
-        ck = cache.key_for(["pagespeed-v1", "mobile", url])
+        # v2: Einträge enthalten zusätzlich die CrUX-Felddaten. v1-Einträge (nur Labor)
+        # werden bewusst nicht mehr gelesen, sonst fehlten die Felddaten bis zum Cache-Ablauf.
+        ck = cache.key_for(["pagespeed-v2", "mobile", url])
         cached = cache.get(ck)
         if cached is not None:
             return PsResult(**cached)
@@ -199,7 +201,10 @@ def _parse_retry_after(header) -> "float | None":
 
 
 def _parse(data):
-    """Liest perf/lcp/cls/tbt defensiv aus dem Lighthouse-Body. Malformed -> None.
+    """Liest perf/lcp/cls/tbt defensiv aus dem Lighthouse-Body, dazu die CrUX-Felddaten.
+
+    Malformed Lighthouse-Teil -> None. Fehlende Felddaten sind kein Fehler (siehe
+    `_parse_field`).
 
     JEDER Zugriff ist umschlossen: ein fehlender/anderer Key oder ein falscher Typ
     (KeyError/TypeError/ValueError) -> None ("PSI fehlgeschlagen" -> Viewport-Fallback,
@@ -214,4 +219,52 @@ def _parse(data):
         tbt = lr["audits"]["total-blocking-time"]["numericValue"]        # ms
     except (KeyError, TypeError, ValueError):
         return None
-    return PsResult(perf_score=perf, lcp_ms=lcp, cls=cls, tbt_ms=tbt, ok=True)
+    return PsResult(perf_score=perf, lcp_ms=lcp, cls=cls, tbt_ms=tbt, ok=True, **_parse_field(data))
+
+
+# CrUX-Metriken in der PSI-Antwort -> PsResult-Feld. CLS liefert die API als ganze Zahl
+# (Wert x 100, z. B. 33 = 0.33), darum der Divisor.
+_FIELD_METRICS = {
+    "LARGEST_CONTENTFUL_PAINT_MS": ("field_lcp_ms", 1.0),
+    "INTERACTION_TO_NEXT_PAINT": ("field_inp_ms", 1.0),
+    "CUMULATIVE_LAYOUT_SHIFT_SCORE": ("field_cls", 100.0),
+}
+
+
+def _metrics_from(experience) -> dict:
+    """Liest die drei Core-Web-Vitals-Perzentile aus einem `*LoadingExperience`-Block.
+
+    Fehlende oder kaputte Einzelwerte werden übersprungen (kein Raise, kein Penalty).
+    """
+    out: dict = {}
+    metrics = experience.get("metrics") if isinstance(experience, dict) else None
+    if not isinstance(metrics, dict):
+        return out
+    for api_key, (field, divisor) in _FIELD_METRICS.items():
+        try:
+            value = float(metrics[api_key]["percentile"]) / divisor
+        except (KeyError, TypeError, ValueError):
+            continue
+        out[field] = value
+    return out
+
+
+def _parse_field(data) -> dict:
+    """Felddaten echter Besucher (CrUX) aus derselben PSI-Antwort, ohne zweiten Abruf.
+
+    Vorrang: Werte genau dieser Seite (`loadingExperience`). Hat die Seite zu wenig
+    Besucher, liefert Google dort entweder nichts oder still die Domain-Werte
+    (`origin_fallback`); dann bzw. sonst gilt `originLoadingExperience` als «Domain».
+    Gar keine Felddaten -> leeres dict, und Dimension 3 bewertet wie bisher nach Labor.
+    [CITED: developer.chrome.com/docs/crux/guides/pagespeed-insights]
+    """
+    if not isinstance(data, dict):
+        return {}
+    page = data.get("loadingExperience")
+    page_metrics = _metrics_from(page)
+    if page_metrics and not (isinstance(page, dict) and page.get("origin_fallback")):
+        return {**page_metrics, "field_scope": "Seite"}
+    origin_metrics = _metrics_from(data.get("originLoadingExperience")) or page_metrics
+    if origin_metrics:
+        return {**origin_metrics, "field_scope": "Domain"}
+    return {}

@@ -130,7 +130,7 @@ as PageSpeed, to a documented estimate from three public signals:
 - **Parallelized with throttle.** Fetches run over a `ThreadPoolExecutor` (`--workers`, default 8);
   external APIs use retry/backoff against rate limits.
 - **Transparency over elegance.** Scores come from deterministic, documented heuristics (no LLM judgment in the scoring path), and every score traces back to its signals.
-- **238 tests**, all green, including edge cases (empty URL, broken URL, parked domain).
+- **249 tests**, all green, including edge cases (empty URL, broken URL, parked domain).
 
 ---
 
@@ -170,8 +170,10 @@ Why these example scores are plausible is explained in
 Everything runs without keys, but two optional credentials make two dimensions stronger.
 Copy the template first (`cp .env.example .env`) and fill in what you have:
 
-- **`PAGESPEED_API_KEY`** (free, from Google) → **dimension 3** measures real Core Web Vitals
-  (LCP/CLS/TBT) via Lighthouse. *Without it, dimension 3 uses a lighter heuristic (it only checks the mobile viewport tag, not actual performance), so for a strict "all of dimensions
+- **`PAGESPEED_API_KEY`** (free, from Google) → **dimension 3** measures real Core Web Vitals.
+  It first uses field data from real Chrome visitors of the last 28 days (Chrome UX Report:
+  LCP/INP/CLS, page or else whole domain, from the same API answer). Small sites often have
+  no field data; then the Lighthouse lab run (performance score, LCP/CLS/TBT) counts instead. *Without it, dimension 3 uses a lighter heuristic (it only checks the mobile viewport tag, not actual performance), so for a strict "all of dimensions
   1–4 really measured" run, this key is recommended.*
 - **`ZEFIX_USER` + `ZEFIX_PASSWORD`** (both required; request access at `zefix@bj.admin.ch`) →
   **purchasing power** is grounded in the Swiss commercial register (authoritative legal form +
@@ -203,6 +205,6 @@ lead_analyzer/
   cache.py           per-URL on-disk cache
   table_io.py        Excel/CSV in & out
 docs/                scoring rubric + sample-run rationale
-tests/               238 tests
+tests/               249 tests
 data/                sample_input.xlsx
 ```
