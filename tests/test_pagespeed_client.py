@@ -134,7 +134,7 @@ def test_cache_hit_no_network(monkeypatch):
         raise AssertionError("kein Netz bei Cache-Hit")
 
     monkeypatch.setattr(requests, "get", tripwire)
-    ck = cache.key_for(["pagespeed-v1", "mobile", _URL])
+    ck = cache.key_for(["pagespeed-v2", "mobile", _URL])
     cache.put(ck, PsResult(perf_score=0.77, lcp_ms=1000, cls=0.01, tbt_ms=10).__dict__)
 
     client = _client(budget=0)          # Budget 0 -> nur Cache-Hit kann liefern
@@ -169,3 +169,69 @@ def test_semaphore_caps(monkeypatch):
         t.join()
 
     assert state["max"] <= 2            # Semaphore-Kappe eingehalten
+
+
+# --- CrUX-Felddaten aus derselben Antwort (2026-11-19) ------------------------ #
+
+def _crux(lcp=None, inp=None, cls100=None, **extra):
+    """Baut einen `loadingExperience`-Block wie ihn PSI v5 liefert (CLS als Wert x 100)."""
+    metrics = {}
+    if lcp is not None:
+        metrics["LARGEST_CONTENTFUL_PAINT_MS"] = {"percentile": lcp, "category": "FAST"}
+    if inp is not None:
+        metrics["INTERACTION_TO_NEXT_PAINT"] = {"percentile": inp, "category": "FAST"}
+    if cls100 is not None:
+        metrics["CUMULATIVE_LAYOUT_SHIFT_SCORE"] = {"percentile": cls100, "category": "FAST"}
+    return {"id": _URL, "metrics": metrics, **extra}
+
+
+def test_field_data_from_page(monkeypatch):
+    """Seitengenaue Felddaten -> field_* gesetzt, CLS durch 100 geteilt, Scope Seite."""
+    body = {**_VALID_BODY, "loadingExperience": _crux(lcp=2370, inp=279, cls100=33)}
+    monkeypatch.setattr(requests, "get", lambda *a, **k: _FakeResp(body=body))
+    res = _client().score(_URL)
+    assert res.field_lcp_ms == 2370
+    assert res.field_inp_ms == 279
+    assert abs(res.field_cls - 0.33) < 1e-9
+    assert res.field_scope == "Seite"
+    assert abs(res.perf_score - 0.42) < 1e-9   # Labor bleibt zusätzlich erhalten
+
+
+def test_field_data_origin_fallback(monkeypatch):
+    """Seite ohne eigene Werte, Domain mit Werten -> Domain-Werte, Scope Domain."""
+    body = {
+        **_VALID_BODY,
+        "loadingExperience": {"initial_url": _URL},
+        "originLoadingExperience": _crux(lcp=3100, inp=150, cls100=5),
+    }
+    monkeypatch.setattr(requests, "get", lambda *a, **k: _FakeResp(body=body))
+    res = _client().score(_URL)
+    assert res.field_lcp_ms == 3100
+    assert res.field_scope == "Domain"
+
+
+def test_field_data_marked_origin_fallback(monkeypatch):
+    """Google setzt origin_fallback -> die Werte gelten als Domain, nicht als Seite."""
+    body = {**_VALID_BODY, "loadingExperience": _crux(lcp=2000, origin_fallback=True)}
+    monkeypatch.setattr(requests, "get", lambda *a, **k: _FakeResp(body=body))
+    res = _client().score(_URL)
+    assert res.field_lcp_ms == 2000
+    assert res.field_scope == "Domain"
+
+
+def test_no_field_data_keeps_lab_only(monkeypatch):
+    """Keine Felddaten (kleine Seite) -> field_* None, Laborwerte unverändert."""
+    monkeypatch.setattr(requests, "get", lambda *a, **k: _FakeResp())
+    res = _client().score(_URL)
+    assert res.field_lcp_ms is None and res.field_inp_ms is None and res.field_cls is None
+    assert res.field_scope is None
+    assert res.lcp_ms == 3000
+
+
+def test_malformed_field_data_ignored(monkeypatch):
+    """Kaputter Feldblock -> wird ignoriert, Labor-Resultat bleibt gültig (kein None)."""
+    body = {**_VALID_BODY, "loadingExperience": {"metrics": {"LARGEST_CONTENTFUL_PAINT_MS": "x"}}}
+    monkeypatch.setattr(requests, "get", lambda *a, **k: _FakeResp(body=body))
+    res = _client().score(_URL)
+    assert isinstance(res, PsResult)
+    assert res.field_lcp_ms is None

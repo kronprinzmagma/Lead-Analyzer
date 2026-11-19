@@ -104,3 +104,59 @@ def test_all_verdicts_are_dim_3():
     fr = make_fetch_result(html=_HTML_VIEWPORT)
     for ps in (None, make_ps_result(perf_score=0.30), make_ps_result(perf_score=0.95)):
         assert performance.analyze(fr, _soup(_HTML_VIEWPORT), ps).dim == 3
+
+
+# --- Felddaten echter Besucher (CrUX) vor Labor (2026-11-19) ------------------ #
+
+def test_field_data_overrides_bad_lab():
+    """Labor langsam (perf 0.30), echte Besucher schnell -> ok, Quelle crux."""
+    fr = make_fetch_result(html=_HTML_VIEWPORT)
+    ps = make_ps_result(
+        perf_score=0.30, lcp_ms=6000,
+        field_lcp_ms=1800, field_inp_ms=120, field_cls=0.02, field_scope="Seite",
+    )
+    v = performance.analyze(fr, _soup(_HTML_VIEWPORT), ps)
+    assert v.level == "ok"
+    assert v.source == "crux"
+    assert "echte Besucher" in v.reason and "Seite" in v.reason
+
+
+def test_field_data_overrides_good_lab():
+    """Labor schnell, echte Besucher mit schlechtem CLS -> severe (worst field metric)."""
+    fr = make_fetch_result(html=_HTML_VIEWPORT)
+    ps = make_ps_result(perf_score=0.99, field_lcp_ms=2000, field_inp_ms=150, field_cls=0.33)
+    v = performance.analyze(fr, _soup(_HTML_VIEWPORT), ps)
+    assert v.level == "severe"
+    assert v.source == "crux"
+
+
+def test_field_inp_gap_band():
+    """INP 279 ms liegt zwischen 200 und 500 -> gap."""
+    fr = make_fetch_result(html=_HTML_VIEWPORT)
+    ps = make_ps_result(field_lcp_ms=2000, field_inp_ms=279, field_cls=0.05)
+    assert performance.analyze(fr, _soup(_HTML_VIEWPORT), ps).level == "gap"
+
+
+def test_partial_field_data_uses_present_metrics():
+    """Nur LCP als Feldwert vorhanden -> nur LCP zählt, Labor wird ignoriert."""
+    fr = make_fetch_result(html=_HTML_VIEWPORT)
+    ps = make_ps_result(perf_score=0.20, field_lcp_ms=2100, field_scope="Domain")
+    v = performance.analyze(fr, _soup(_HTML_VIEWPORT), ps)
+    assert v.level == "ok"
+    assert "Domain" in v.reason
+
+
+def test_field_data_without_viewport_at_least_gap():
+    """Gute Feldwerte, aber kein viewport-meta -> mindestens gap."""
+    fr = make_fetch_result(html=_HTML_NO_VIEWPORT)
+    ps = make_ps_result(field_lcp_ms=1500, field_inp_ms=100, field_cls=0.01)
+    assert performance.analyze(fr, _soup(_HTML_NO_VIEWPORT), ps).level == "gap"
+
+
+def test_no_field_data_falls_back_to_lab():
+    """Ohne Felddaten bleibt das Laborverhalten unverändert (perf 0.30 -> severe)."""
+    fr = make_fetch_result(html=_HTML_VIEWPORT)
+    v = performance.analyze(fr, _soup(_HTML_VIEWPORT), make_ps_result(perf_score=0.30))
+    assert v.level == "severe"
+    assert v.source == "pagespeed"
+    assert "keine Felddaten" in v.reason

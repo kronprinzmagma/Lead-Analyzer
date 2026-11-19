@@ -8,7 +8,7 @@ Der Score «Website-Bedarf» misst, **wie dringend ein Kunde eine moderne, profe
 |---|---|---|---|---|
 | 1 | **Existenz & Substanz** | Erreichbar (HTTP 200)? Geparkt/Platzhalter? Nur Social-Media statt Website? Keine Website = maximaler Bedarf | Profi-Auftritt überhaupt | HTTP-Status, HTML-Inhalt, Redirect-Ziel |
 | 2 | **Technische Basis** | HTTPS/gültiges SSL? Eigene Domain oder Gratis-Subdomain (wixsite, jimdosite, …)? | «Eigene Domain, SSL-zertifiziert» | SSL-Cert, HTTP-Header, Domain-Muster |
-| 3 | **Mobile & Performance** | Responsive (Viewport-Meta)? Core Web Vitals / Ladezeit | «Responsive Design», Qualitäts-Check | PageSpeed-Insights-API (Performance, Mobile) |
+| 3 | **Mobile & Performance** | Responsive (Viewport-Meta)? Core Web Vitals / Ladezeit | «Responsive Design», Qualitäts-Check | PageSpeed-Insights-API (Mobile): zuerst Felddaten echter Besucher (CrUX: LCP/INP/CLS, 75. Perzentil, Seite oder sonst Domain), ohne Felddaten die Labormessung (Lighthouse) |
 | 4 | **Auffindbarkeit (SEO)** | Title/Meta-Description vorhanden+Länge, Canonical, robots/sitemap, Überschriften, Indexierbarkeit | «SEO – auf Google gefunden» | Lighthouse-SEO + HTML-Parse |
 | 5 | **KI-/Answer-Engine-Bereitschaft** | Strukturiertes Markup (Schema.org/JSON-LD), Open-Graph-Tags, klare Themenstruktur | «Sichtbar auf KI-Suchmaschinen» | Markup-Detektion im HTML |
 | 6 | **Inhalt, Aktualität & Conversion** | Kontaktformular, `tel:`/`mailto:`, Impressum; Copyright-Jahr/Last-Modified als Aktualitäts-Proxy; veralteter Builder/Generator | Gratis-Aktualisierung, Profi-Inhalte, Module | HTML-Parse; optional LLM/Screenshot fürs Qualitative |

@@ -23,7 +23,7 @@ class DimensionVerdict:
     dim: int                       # 1..6
     level: str                     # "ok" | "gap" | "severe"
     reason: str                    # menschenlesbar -> Log + Begründungsspalte
-    source: str = "html"           # "html" | "pagespeed" | "llm" | "heuristic-fallback"
+    source: str = "html"           # "html" | "pagespeed" | "crux" | "llm" | "heuristic-fallback"
     dead: bool = False             # explizites Maschinen-Flag: keine/defekte Website -> Bedarf-Override 5
                                    #   (entkoppelt die Score-Richtung vom Anzeige-Text, AC3)
 
@@ -76,7 +76,7 @@ class PsResult:
     """PageSpeed-Insights-Resultat (Dim 3, Phase 6) — klein und JSON-serialisierbar.
 
     Alle Felder sind JSON-native (float|None / bool), damit `__dict__` verlustfrei
-    durch `cache.put/get` im PSI-Namespace ("pagespeed-v1") round-trippt (AC7/AC8).
+    durch `cache.put/get` im PSI-Namespace ("pagespeed-v2") round-trippt (AC7/AC8).
     Wichtig (Degradations-Vertrag, Pitfall 8): ein FEHLER signalisiert sich durch
     `None` als Rückgabe des Clients — NICHT durch `ok=False`. `ok` ist bei einem
     konstruierten Resultat stets True; ein PSI-Fehler/Timeout liefert gar kein
@@ -88,6 +88,12 @@ class PsResult:
     cls: float | None = None          # Cumulative Layout Shift
     tbt_ms: float | None = None       # Total Blocking Time (ms)
     ok: bool = True                   # immer True bei Konstruktion; None ersetzt "not ok"
+    # Felddaten echter Chrome-Besucher (CrUX, 75. Perzentil der letzten 28 Tage), aus
+    # derselben PSI-Antwort. None = keine Felddaten (zu wenig Besucher) -> Labor gilt.
+    field_lcp_ms: float | None = None  # Largest Contentful Paint (ms)
+    field_inp_ms: float | None = None  # Interaction to Next Paint (ms)
+    field_cls: float | None = None     # Cumulative Layout Shift (bereits /100 umgerechnet)
+    field_scope: str | None = None     # "Seite" (URL-genau) | "Domain" (ganze Website)
 
 
 @dataclass

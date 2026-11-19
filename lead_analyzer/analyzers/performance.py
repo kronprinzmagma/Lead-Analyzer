@@ -15,6 +15,10 @@ Vertrag (06-RESEARCH Pattern 1/2/3):
   abstrafen. Diese Branch steht ZUERST und kann strukturell kein severe liefern.
 - Ein echtes PsResult verfeinert: das schlechteste Metrik-Band gewinnt
   (worst-metric-wins); fehlender viewport ist mindestens ein `gap`.
+- Felddaten vor Labor (seit 2026-11-19): Enthält das PsResult Werte echter
+  Chrome-Besucher (CrUX: LCP, INP, CLS), zählen NUR diese; die simulierte
+  Labormessung dient dann nicht mehr als Note. Ohne Felddaten (kleine Seiten
+  mit wenig Besuchern) gilt das Labor wie bisher.
 - Alle Verdicts: dim == 3.
 
 [CITED: 06-RESEARCH.md Pattern 2 "PSI-error-is-not-slow", Pattern 3
@@ -69,6 +73,38 @@ def _band_for(value: float, ok_max: float, gap_max: float) -> str:
     return "severe"
 
 
+# Core-Web-Vitals-Schwellen für Felddaten (75. Perzentil), offizielle Grenzen von
+# Google: "good" -> ok, "needs improvement" -> gap, "poor" -> severe.
+# [CITED: web.dev/articles/vitals — LCP 2.5/4 s, INP 200/500 ms, CLS 0.1/0.25]
+_FIELD_THRESHOLDS = {
+    "field_lcp_ms": (2500, 4000),
+    "field_inp_ms": (200, 500),
+    "field_cls": (0.10, 0.25),
+}
+
+
+def _field_bands(r) -> list[str]:
+    """Bänder aller vorhandenen Feld-Metriken; leer = keine Felddaten."""
+    bands: list[str] = []
+    for field, (ok_max, gap_max) in _FIELD_THRESHOLDS.items():
+        value = getattr(r, field, None)
+        if value is not None:
+            bands.append(_band_for(value, ok_max, gap_max))
+    return bands
+
+
+def _field_reason(r) -> str:
+    """Kurztext der Feldwerte fürs Log, z. B. 'LCP 2.4 s, INP 279 ms, CLS 0.33'."""
+    parts = []
+    if getattr(r, "field_lcp_ms", None) is not None:
+        parts.append(f"LCP {r.field_lcp_ms / 1000:.1f} s")
+    if getattr(r, "field_inp_ms", None) is not None:
+        parts.append(f"INP {r.field_inp_ms:.0f} ms")
+    if getattr(r, "field_cls", None) is not None:
+        parts.append(f"CLS {r.field_cls:.2f}")
+    return ", ".join(parts)
+
+
 def _band_from_lighthouse(r) -> str:
     """Schlechtestes Band über alle VORHANDENEN Metriken (worst-metric-wins).
 
@@ -116,12 +152,28 @@ def analyze(fr, soup, ps_result=None) -> DimensionVerdict:
             "heuristic-fallback",
         )
 
-    # --- Echtes PsResult: Lighthouse-Bänder verfeinern (worst-metric-wins) ---
+    # --- Felddaten echter Besucher haben Vorrang vor dem Labor ---
+    field_bands = _field_bands(ps_result)
+    if field_bands:
+        level = max(field_bands, key=lambda b: _BAND_RANK[b])
+        if not has_viewport:
+            level = _worse(level, "gap")
+        scope = getattr(ps_result, "field_scope", None) or "Seite"
+        reason = (
+            f"echte Besucher (CrUX, 28 Tage, {scope}): {_field_reason(ps_result)}"
+            + ("" if has_viewport else "; kein viewport-meta")
+        )
+        return DimensionVerdict(3, level, reason, "crux")
+
+    # --- Keine Felddaten: Lighthouse-Laborbänder (worst-metric-wins) ---
     level = _band_from_lighthouse(ps_result)
     # Fehlender viewport ist mindestens ein gap, auch bei guten PSI-Werten.
     if not has_viewport:
         level = _worse(level, "gap")
     # None-Guard im f-string (T-06-07): perf_score kann None sein.
     perf = f"{ps_result.perf_score:.2f}" if ps_result.perf_score is not None else "n/a"
-    reason = f"PageSpeed mobile perf={perf}" + ("" if has_viewport else "; kein viewport-meta")
+    reason = (
+        f"PageSpeed Labor mobile perf={perf} (keine Felddaten)"
+        + ("" if has_viewport else "; kein viewport-meta")
+    )
     return DimensionVerdict(3, level, reason, "pagespeed")
