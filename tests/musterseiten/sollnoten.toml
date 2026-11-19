@@ -1,0 +1,129 @@
+# Sollnoten der Musterseiten für tests/test_musterseiten.py (Website-Bedarf 1-5,
+# höher = grösserer Bedarf). Alle Seiten sind erfunden.
+#
+# So bestätigst oder änderst du eine Note: soll_bedarf anpassen und
+# quelle = "bestaetigt" setzen. «vorschlag» = Note, die das Tool am 2026-11-19
+# vergeben hat, noch nicht von Nils bestätigt.
+# Weicht das Tool danach ab, schlägt der Test fehl und nennt die Begründung.
+# Heutige Noten anzeigen:  python tests/test_musterseiten.py
+
+[[seite]]
+id = "01_modern_kmu"
+beschreibung = "Moderne KMU-Seite: HTTPS, mobil, SEO-Basics, JSON-LD + Open Graph, Kontaktformular, Impressum, aktuelles Copyright"
+kunde = "Muster Schreinerei AG"
+url = "https://www.muster-schreinerei.example/"
+status = 200
+html = "01_modern_kmu.html"
+soll_bedarf = 1
+quelle = "vorschlag"
+
+[[seite]]
+id = "02_solide_ohne_markup"
+beschreibung = "Wie 01, aber ohne strukturiertes Markup (kein JSON-LD, kein Open Graph)"
+kunde = "Muster Schreinerei AG"
+url = "https://www.muster-schreinerei.example/"
+status = 200
+html = "02_solide_ohne_markup.html"
+soll_bedarf = 3
+quelle = "vorschlag"
+
+[[seite]]
+id = "03_veraltet_handwerker"
+beschreibung = "Veraltete Handwerker-Seite: nur http, kein viewport, Tabellenlayout, FrontPage, Copyright 2011, keine Meta-Description"
+kunde = "Muster Malergeschäft"
+url = "http://www.muster-maler.example/"
+status = 200
+ssl_ok = false
+html = "03_veraltet_handwerker.html"
+soll_bedarf = 5
+quelle = "vorschlag"
+
+[[seite]]
+id = "04_duenner_einseiter"
+beschreibung = "Einseiter mit HTTPS und viewport, aber zwei Sätzen Text, ohne Impressum, ohne Markup"
+kunde = "Coiffeur Muster"
+url = "https://www.coiffeur-muster.example/"
+status = 200
+html = "04_duenner_einseiter.html"
+soll_bedarf = 4
+quelle = "vorschlag"
+
+[[seite]]
+id = "05_javascript_huelle"
+beschreibung = "Moderne Single-Page-App: Inhalt kommt erst per JavaScript, das HTML ist eine leere Hülle"
+kunde = "Muster Treuhand GmbH"
+url = "https://www.muster-treuhand.example/"
+status = 200
+html = "05_javascript_huelle.html"
+soll_bedarf = 4
+quelle = "vorschlag"
+
+[[seite]]
+id = "06_gratis_subdomain"
+beschreibung = "Ordentliche Baukasten-Seite, aber auf einer Gratis-Subdomain (wixsite.com) statt eigener Domain"
+kunde = "Gärtnerei Muster"
+url = "https://gaertnerei-muster.wixsite.com/home"
+status = 200
+html = "06_gratis_subdomain.html"
+soll_bedarf = 3
+quelle = "vorschlag"
+
+[[seite]]
+id = "07_nur_social_media"
+beschreibung = "Keine eigene Website, die URL zeigt auf eine Facebook-Seite"
+kunde = "Bäckerei Muster"
+url = "https://www.facebook.com/baeckerei.muster.example"
+status = 200
+html = "07_nur_social_media.html"
+soll_bedarf = 4
+quelle = "vorschlag"
+
+[[seite]]
+id = "08_geparkt"
+beschreibung = "Geparkte Domain: «Diese Domain steht zum Verkauf»"
+kunde = "Muster Garage GmbH"
+url = "https://muster-garage.example/"
+status = 200
+html = "08_geparkt.html"
+soll_bedarf = 5
+quelle = "vorschlag"
+
+[[seite]]
+id = "09_baustelle"
+beschreibung = "Platzhalter «Website coming soon» mit E-Mail-Link"
+kunde = "Muster Elektro AG"
+url = "https://www.muster-elektro.example/"
+status = 200
+html = "09_baustelle.html"
+soll_bedarf = 5
+quelle = "vorschlag"
+
+[[seite]]
+id = "10_nicht_erreichbar"
+beschreibung = "Domain antwortet nicht (DNS/Timeout), kein Inhalt"
+kunde = "Muster Sanitär AG"
+url = "https://www.muster-sanitaer.example/"
+fehler = "nicht erreichbar"
+soll_bedarf = 5
+quelle = "vorschlag"
+
+[[seite]]
+id = "11_ssl_ungueltig_noindex"
+beschreibung = "Sonst solide Seite, aber ungültiges SSL-Zertifikat und versehentlich noindex (für Google unsichtbar)"
+kunde = "Velo Muster GmbH"
+url = "https://www.muster-velo.example/"
+status = 200
+ssl_ok = false
+html = "11_ssl_ungueltig_noindex.html"
+soll_bedarf = 4
+quelle = "vorschlag"
+
+[[seite]]
+id = "12_blockiert_403"
+beschreibung = "Schutzfilter blockiert den Abruf (HTTP 403): nicht bewertbar, darf nicht als «keine Website» gelten"
+kunde = "Muster Versicherung AG"
+url = "https://www.muster-versicherung.example/"
+status = 403
+html = "12_blockiert_403.html"
+soll_bedarf = 4
+quelle = "vorschlag"

@@ -130,7 +130,8 @@ as PageSpeed, to a documented estimate from three public signals:
 - **Parallelized with throttle.** Fetches run over a `ThreadPoolExecutor` (`--workers`, default 8);
   external APIs use retry/backoff against rate limits.
 - **Transparency over elegance.** Scores come from deterministic, documented heuristics (no LLM judgment in the scoring path), and every score traces back to its signals.
-- **249 tests**, all green, including edge cases (empty URL, broken URL, parked domain).
+- **262 tests**, all green, including edge cases (empty URL, broken URL, parked domain) and a
+  regression set of twelve invented sample sites with a fixed overall score (`tests/musterseiten/`).
 
 ---
 
@@ -187,6 +188,10 @@ Copy the template first (`cp .env.example .env`) and fill in what you have:
 python -m pytest tests/ -q
 ```
 
+`tests/test_musterseiten.py` checks the overall need score of twelve invented sample sites
+against `tests/musterseiten/sollnoten.toml`. After a rule change, `python tests/test_musterseiten.py`
+lists target vs. current score for every sample site.
+
 ---
 
 ## Repository layout
@@ -205,6 +210,6 @@ lead_analyzer/
   cache.py           per-URL on-disk cache
   table_io.py        Excel/CSV in & out
 docs/                scoring rubric + sample-run rationale
-tests/               249 tests
+tests/               262 tests
 data/                sample_input.xlsx
 ```
