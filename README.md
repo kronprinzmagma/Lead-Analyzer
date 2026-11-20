@@ -217,3 +217,7 @@ docs/                scoring rubric + sample-run rationale
 tests/               274 tests
 data/                sample_input.xlsx
 ```
+
+## License
+
+MIT, see [LICENSE](LICENSE).
