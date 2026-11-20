@@ -27,3 +27,19 @@ updates:
         update-types:
           - "minor"
           - "patch"
+
+  # GitHub Actions (seit 2026-11-20): haelt die Action-Versionen in den Workflows aktuell.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "Europe/Zurich"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(ci)"
+    groups:
+      actions:
+        patterns:
+          - "*"
