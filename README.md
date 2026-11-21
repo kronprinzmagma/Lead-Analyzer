@@ -101,7 +101,7 @@ website makes:
 2. **Technical basis**: HTTPS/valid SSL, own domain instead of a free subdomain.
 3. **Mobile & performance**: responsive? (optional real Core Web Vitals via Google PageSpeed Insights, which runs Lighthouse).
 4. **Findability (SEO)**: title, meta description, H1, canonical, `lang` attribute, indexability (`noindex`).
-5. **AI / answer-engine readiness**: structured markup (Schema.org/JSON-LD), Open Graph.
+5. **AI / answer-engine readiness**: structured markup (Schema.org/JSON-LD, Microdata), Open Graph.
 6. **Content, freshness & conversion**: contact form, `tel:`/`mailto:`, legal notice, freshness.
 
 **No reachable website → automatic score 5** (overrides everything: whoever has no website needs one most urgently).
@@ -189,8 +189,11 @@ Copy the template first (`cp .env.example .env`) and fill in what you have:
 ### Tests
 
 ```bash
+pip install "pytest>=8"   # not in requirements.txt
 python -m pytest tests/ -q
 ```
+
+CI (`.github/workflows/test.yml`) runs the suite on Python 3.15 for every push to `main` and every pull request.
 
 `tests/test_musterseiten.py` checks the overall need score of twelve invented sample sites
 against `tests/musterseiten/sollnoten.toml`. After a rule change, `python tests/test_musterseiten.py`
@@ -201,10 +204,11 @@ lists target vs. current score for every sample site.
 ## Repository layout
 
 ```
+run.py               entry point (calls lead_analyzer.cli)
 lead_analyzer/
   pipeline.py        Orchestrator: read → score → sort → write
   analyzers/         the six need dimensions + purchasing-power estimate
-    clients/           external APIs (PageSpeed, Zefix) with retry/backoff
+  clients/           external APIs (PageSpeed, Zefix) with retry/backoff
   fetch.py           website fetch with per-row error boundary
   sales_arguments.py second sheet: deficit → benefit mapping
   cli.py, config.py  command line and settings

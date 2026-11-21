@@ -9,11 +9,11 @@ Der Score «Website-Bedarf» misst, **wie dringend ein Kunde eine moderne, profe
 | 1 | **Existenz & Substanz** | Erreichbar (HTTP 200)? Geparkt/Platzhalter? Nur Social-Media statt Website? Keine Website = maximaler Bedarf | Profi-Auftritt überhaupt | HTTP-Status, HTML-Inhalt, Redirect-Ziel |
 | 2 | **Technische Basis** | HTTPS/gültiges SSL? Eigene Domain oder Gratis-Subdomain (wixsite, jimdosite, …)? | «Eigene Domain, SSL-zertifiziert» | SSL-Cert, HTTP-Header, Domain-Muster |
 | 3 | **Mobile & Performance** | Responsive (Viewport-Meta)? Core Web Vitals / Ladezeit | «Responsive Design», Qualitäts-Check | PageSpeed-Insights-API (Mobile): zuerst Felddaten echter Besucher (CrUX: LCP/INP/CLS, 75. Perzentil, Seite oder sonst Domain), ohne Felddaten die Labormessung (Lighthouse) |
-| 4 | **Auffindbarkeit (SEO)** | Title/Meta-Description vorhanden+Länge, Canonical, robots/sitemap, Überschriften, Indexierbarkeit | «SEO – auf Google gefunden» | Lighthouse-SEO + HTML-Parse |
-| 5 | **KI-/Answer-Engine-Bereitschaft** | Strukturiertes Markup (Schema.org/JSON-LD), Open-Graph-Tags, klare Themenstruktur | «Sichtbar auf KI-Suchmaschinen» | Markup-Detektion im HTML |
-| 6 | **Inhalt, Aktualität & Conversion** | Kontaktformular, `tel:`/`mailto:`, Impressum; Copyright-Jahr/Last-Modified als Aktualitäts-Proxy; veralteter Builder/Generator | Gratis-Aktualisierung, Profi-Inhalte, Module | HTML-Parse; optional LLM/Screenshot fürs Qualitative |
+| 4 | **Auffindbarkeit (SEO)** | Title/Meta-Description vorhanden+Länge, Canonical, `lang`, H1, Indexierbarkeit (`noindex` per Meta-Robots oder X-Robots-Tag); robots.txt/sitemap.xml werden derzeit nicht geprüft | «SEO – auf Google gefunden» | HTML-Parse + HTTP-Header |
+| 5 | **KI-/Answer-Engine-Bereitschaft** | Strukturiertes Markup (Schema.org/JSON-LD, Microdata), Open-Graph-Tags | «Sichtbar auf KI-Suchmaschinen» | Markup-Detektion im HTML |
+| 6 | **Inhalt, Aktualität & Conversion** | Kontaktformular, `tel:`/`mailto:`, Impressum; Copyright-Jahr als Aktualitäts-Proxy; veralteter Builder/Generator (`<meta name="generator">`) | Gratis-Aktualisierung, Profi-Inhalte, Module | HTML-Parse |
 
-Dimensionen 3–4 liefert die PageSpeed-Insights-API in einem Call; 1, 2, 5, 6 kommen aus HTTP-Abruf + HTML-Parse. Dimension 6 (Aktualität/Textqualität) darf zusätzlich einen LLM-/Screenshot-Layer nutzen — aber **nach** den deterministischen Checks, als Ergänzung, nicht als Ersatz.
+Dimension 3 nutzt mit `PAGESPEED_API_KEY` die PageSpeed-Insights-API, ohne Key die Viewport-Heuristik; 1, 2, 4, 5, 6 kommen aus HTTP-Abruf + HTML-Parse. Dimension 6 (Aktualität/Textqualität) dürfte zusätzlich einen LLM-/Screenshot-Layer nutzen — aber **nach** den deterministischen Checks, als Ergänzung, nicht als Ersatz. Umgesetzt ist das nicht: im Scoring-Pfad läuft kein LLM.
 
 ## Aggregation zum 1–5-Score
 
