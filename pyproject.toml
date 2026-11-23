@@ -1,0 +1,38 @@
+# Abhängigkeiten von Lead-Analyzer (seit 2026-11-23 statt requirements.txt, Idee 42).
+# Feste Versionen stehen in uv.lock; installieren mit `uv sync` (lokal) bzw.
+# `uv sync --locked` (CI: bricht ab, wenn uv.lock nicht zu dieser Datei passt).
+# Kein [build-system]: das Repo ist ein Skript, kein installierbares Paket.
+[project]
+name = "lead-analyzer"
+version = "0.1.0"
+description = "Bewertet eine Kundenliste nach Website-Bedarf und Zahlungskräftigkeit (je 1-5)."
+requires-python = ">=3.10"
+dependencies = [
+    "openpyxl>=3.1.5",        # Excel-I/O (kein pandas: erhält Spaltentypen unverändert, AC2)
+    "requests>=2.34.2",       # HTTP-Abruf der Kunden-Websites
+    "beautifulsoup4>=4.15.0", # HTML-Parsing und Zeichensatz-Erkennung
+]
+
+[dependency-groups]
+# Wird von `uv sync` standardmässig mitinstalliert.
+dev = [
+    "pytest>=8",
+    "pytest-cov>=7",
+    "ruff>=0.17.6",
+]
+
+# Repo-Wurzel in den Importpfad, damit `pytest` (nicht nur `python -m pytest`)
+# das Paket lead_analyzer findet.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+# Testabdeckung (Katalog C6): Bericht mit fehlenden Zeilen; Untergrenze knapp unter
+# dem Stand vom 2026-11-23 (93 %), damit ein Rückschritt die CI rot macht.
+[tool.coverage.run]
+source = ["lead_analyzer"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 90

@@ -1,7 +1,9 @@
-# Fuehrt die Testsuite bei jedem Push und PR aus.
+# Fuehrt Linter und Testsuite bei jedem Push und PR aus.
 #
-# Bis 2026-08-18 hatte dieses Repo gar keine CI — 238 Tests liefen nur, wenn
-# jemand sie von Hand startete.
+# Bis 2026-08-18 hatte dieses Repo gar keine CI — die Tests liefen nur, wenn
+# jemand sie von Hand startete. Seit 2026-11-23 (Idee 42, Katalog C1/C6/C11 in
+# repo-cockpit/code-praxis.yml) zusaetzlich: ruff, Testabdeckung mit Untergrenze
+# und Installation ausschliesslich aus uv.lock.
 name: Tests
 
 on:
@@ -20,19 +22,21 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v7
+      # setup-uv veroeffentlicht keine Major-Tags mehr, darum volle Version;
+      # Dependabot (github-actions) haelt sie aktuell.
+      - uses: astral-sh/setup-uv@v10.4.0
         with:
           python-version: "3.15"
-          cache: pip
+          enable-cache: true
 
-      # Das Repo hat kein pyproject.toml — Laufzeit-Abhaengigkeiten stehen in
-      # requirements.txt, pytest ist dort nur als Kommentar vermerkt und wird
-      # darum hier explizit installiert.
-      - name: Abhaengigkeiten installieren
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install "pytest>=8"
+      # --locked: installiert genau die Versionen aus uv.lock und bricht ab, wenn
+      # uv.lock nicht mehr zu pyproject.toml passt (statt still neu aufzuloesen).
+      - name: Abhaengigkeiten installieren (aus uv.lock)
+        run: uv sync --locked
 
-      - name: Tests
-        run: python -m pytest tests/ -q
+      - name: ruff
+        run: uv run ruff check --output-format=github .
+
+      # Abdeckungsbericht im Log; Untergrenze (fail_under) steht in pyproject.toml.
+      - name: Tests mit Abdeckung
+        run: uv run pytest tests/ -q --cov --cov-report=term-missing
