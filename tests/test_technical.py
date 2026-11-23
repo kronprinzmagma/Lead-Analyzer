@@ -93,7 +93,7 @@ def test_www_prefix_free_subdomain_is_severe():
     v = technical.analyze(fr)
     assert v.dim == 2
     assert v.level == "severe"
-    assert "wixsite.com" in v.reason
+    assert "Gratis-Subdomain wixsite.com" in v.reason
 
 
 # ---------- Saubere eigene Domain -> ok ----------
