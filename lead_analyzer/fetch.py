@@ -148,13 +148,20 @@ def _decode(raw: bytes, header_charset: str | None) -> str:
     nie die ganze Seite kosten (AC4). Keine statistische Schätzung: deterministisch.
     """
     body, bom = EncodingDetector.strip_byte_order_mark(raw)
-    meta = None if bom else EncodingDetector.find_declared_encoding(body, is_html=True)
-    for declared in (bom, header_charset, meta):
+    if bom:
+        # Das BOM ist die verlässlichste Angabe und gilt wörtlich: anders als eine
+        # utf-16-Angabe in Header oder <meta> ist eine Seite mit UTF-16-BOM wirklich
+        # UTF-16 kodiert und darf nicht auf UTF-8 umgebogen werden (_codec).
+        return body.decode(bom, errors="replace")
+    meta = EncodingDetector.find_declared_encoding(body, is_html=True)
+    for declared in (header_charset, meta):
         codec = _codec(declared)
         if codec:
             return body.decode(codec, errors="replace")
     try:
-        return body.decode("utf-8")
+        # final=False: ein Zeichen, das die 2-MB-Grenze mittendrin abschneidet, kostet
+        # nur sich selbst, nicht die UTF-8-Erkennung der ganzen Seite.
+        return codecs.getincrementaldecoder("utf-8")().decode(body, final=False)
     except UnicodeDecodeError:
         return body.decode("windows-1252", errors="replace")
 
