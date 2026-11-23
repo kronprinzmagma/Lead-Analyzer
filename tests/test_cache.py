@@ -82,6 +82,17 @@ def test_stale_schema_miss(tmp_path) -> None:
     assert cache.get(key) is None
 
 
+def test_eintraege_vor_neuer_dekodierung_werden_neu_geholt(tmp_path) -> None:
+    """Idee 40: Einträge mit Schema 1 stammen aus der alten Dekodierung (Zeichensalat
+    oder verworfener Body) und gelten als Miss, damit die Seite neu geholt wird."""
+    import json
+    cache.set_cache_dir(tmp_path)
+    key = cache.key_for(["https://alt.example"])
+    alt = {"schema_version": 1, "payload": make_fetch_result(html=None, error="Body-Lesefehler").to_dict()}
+    (tmp_path / f"{key}.json").write_text(json.dumps(alt), encoding="utf-8")
+    assert cache.get(key) is None
+
+
 # --------------------------------------------------------------------------- #
 # Atomarität: kein .tmp-Rest, genau eine {key}.json                            #
 # --------------------------------------------------------------------------- #
