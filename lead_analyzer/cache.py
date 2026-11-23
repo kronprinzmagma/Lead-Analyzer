@@ -27,7 +27,9 @@ _LOCK = threading.Lock()
 # Default ./cache; Tests überschreiben das per set_cache_dir(tmp_path) (Pitfall 4).
 _CACHE_DIR = Path("cache")
 # Schema-Version der Cache-Einträge; ein Bump invalidiert alte Files (Miss).
-_SCHEMA_VERSION = 1
+# 2 (2026-11-23, Idee 40): Seiten-Text wird seit PR #16 anders dekodiert. Einträge mit
+# Schema 1 können Zeichensalat oder einen verworfenen Body («Body-Lesefehler») enthalten.
+_SCHEMA_VERSION = 2
 
 
 def set_cache_dir(path) -> None:
