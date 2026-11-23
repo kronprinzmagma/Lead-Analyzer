@@ -134,7 +134,7 @@ as PageSpeed, to a documented estimate from three public signals:
 - **Parallelized with throttle.** Fetches run over a `ThreadPoolExecutor` (`--workers`, default 8);
   external APIs use retry/backoff against rate limits.
 - **Transparency over elegance.** Scores come from deterministic, documented heuristics (no LLM judgment in the scoring path), and every score traces back to its signals.
-- **292 tests**, all green, including edge cases (empty URL, broken URL, parked domain) and a
+- **296 tests**, all green, including edge cases (empty URL, broken URL, parked domain) and a
   regression set of twelve invented sample sites with a fixed overall score (`tests/musterseiten/`).
 
 ---
@@ -222,7 +222,7 @@ lead_analyzer/
   cache.py           per-URL on-disk cache
   table_io.py        Excel/CSV in & out
 docs/                scoring rubric + sample-run rationale
-tests/               292 tests
+tests/               296 tests
 data/                sample_input.xlsx
 ```
 
