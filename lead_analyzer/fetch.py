@@ -10,9 +10,11 @@ Die netz-führende `fetch()` kommt in Plan 02-02 und wird an DIESE Datei angehä
 
 from __future__ import annotations
 
+import codecs
 from urllib.parse import urlsplit, urlunsplit
 
 import requests
+from bs4.dammit import EncodingDetector
 
 from . import cache
 from .models import FetchResult
@@ -91,10 +93,13 @@ _MAX_BYTES = 2_000_000
 
 
 def _read_capped(resp) -> str:
-    """Liest den Body gestreamt bis zum 2-MB-Cap und dekodiert tolerant.
+    """Liest den Body gestreamt bis zum 2-MB-Cap und dekodiert ihn wie ein Browser.
 
-    Encoding: deklariert -> apparent_encoding -> utf-8; immer `errors='replace'`,
-    damit latin-1/win-1252-Seiten nie einen UnicodeDecodeError auslösen (AC4).
+    Bewusst NICHT über `resp.encoding`/`resp.apparent_encoding` (bis 2026-11-23, Idee 40):
+    requests setzt bei `text/html` ohne charset fest ISO-8859-1 (UTF-8-Umlaute werden zu
+    Zeichensalat), und `apparent_encoding` liest `.content` — nach dem gestreamten Lesen
+    wirft das (Inhalt verworfen) oder lädt bei grossen Seiten den ganzen Rest nach
+    (2-MB-Grenze umgangen). Stattdessen werden nur die gelesenen Bytes dekodiert.
     """
     chunks: list[bytes] = []
     total = 0
@@ -105,15 +110,53 @@ def _read_capped(resp) -> str:
         total += len(chunk)
         if total >= _MAX_BYTES:
             break
-    raw = b"".join(chunks)
-    enc = resp.encoding or resp.apparent_encoding or "utf-8"
+    return _decode(b"".join(chunks), _header_charset(resp.headers))
+
+
+def _header_charset(headers) -> str | None:
+    """charset-Parameter aus dem Content-Type-Header, nur wenn ausdrücklich angegeben."""
+    content_type = headers.get("Content-Type") or ""
+    for param in content_type.split(";")[1:]:
+        key, _, value = param.partition("=")
+        if key.strip().lower() == "charset":
+            return value.strip().strip("\"'") or None
+    return None
+
+
+def _codec(name: str | None) -> str | None:
+    """Gültiger Codec-Name oder None (Tippfehler im charset -> None, Review L3)."""
+    if not name:
+        return None
     try:
-        return raw.decode(enc, errors="replace")
+        codec = codecs.lookup(name).name
     except LookupError:
-        # Deklariertes Encoding ist kein gültiger Codec (z.B. Tippfehler im
-        # charset). errors='replace' fängt das NICHT -> utf-8-Fallback, damit ein
-        # lesbarer Body nicht unnötig verworfen wird (Review L3).
-        return raw.decode("utf-8", errors="replace")
+        return None
+    # HTML-Standard (WHATWG Encoding): iso-8859-1/latin1/ascii heissen dort windows-1252,
+    # eine utf-16-Angabe in ASCII-lesbarem Markup meint utf-8.
+    if codec in ("iso8859-1", "ascii"):
+        return "cp1252"
+    return "utf-8" if codec.startswith("utf-16") else codec
+
+
+def _decode(raw: bytes, header_charset: str | None) -> str:
+    """Bytes -> Text in der Reihenfolge des HTML-Standards (WHATWG «encoding sniffing»):
+
+    1. Byte Order Mark, 2. charset im Content-Type-Header, 3. <meta charset> bzw.
+    http-equiv im Dokument (Erkennung von BeautifulSoup, `EncodingDetector`),
+    4. ohne jede Angabe: UTF-8, wenn die Bytes gültiges UTF-8 sind, sonst windows-1252.
+    Eine Angabe wird mit `errors='replace'` angewandt, damit einzelne falsche Bytes
+    nie die ganze Seite kosten (AC4). Keine statistische Schätzung: deterministisch.
+    """
+    body, bom = EncodingDetector.strip_byte_order_mark(raw)
+    meta = None if bom else EncodingDetector.find_declared_encoding(body, is_html=True)
+    for declared in (bom, header_charset, meta):
+        codec = _codec(declared)
+        if codec:
+            return body.decode(codec, errors="replace")
+    try:
+        return body.decode("utf-8")
+    except UnicodeDecodeError:
+        return body.decode("windows-1252", errors="replace")
 
 
 def fetch(candidates: list[str], config) -> FetchResult:
@@ -195,9 +238,9 @@ def _fetch_network(candidates: list[str], config) -> FetchResult:
                     try:
                         html = _read_capped(resp)
                         read_err = None
-                    except Exception:
+                    except Exception as e:
                         html = None
-                        read_err = "Body-Lesefehler"
+                        read_err = f"Body-Lesefehler: {type(e).__name__}"
                     result = FetchResult(
                         url=url,
                         ok=(200 <= resp.status_code < 400),

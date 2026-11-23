@@ -11,13 +11,17 @@ Plan 02-02 für `fetch()`-Tests einen echten Override-Mechanismus).
 Zusätzlich stehen wiederverwendbare Fakes als Modul-Funktionen/-Klassen bereit
 (nicht nur als Fixtures), damit Plan 02-02 sie direkt importieren kann:
 - `make_fetch_result(**overrides)` -> ein `FetchResult` mit sinnvollen Defaults.
-- `FakeResponse` -> ein winziges `requests.Response`-Imitat für `fetch()`-Tests.
+- `FakeResponse` -> ein echtes `requests.Response` mit Test-Body für `fetch()`-Tests.
 """
 
 from __future__ import annotations
 
-import requests
+import io
+
 import pytest
+import requests
+from requests.structures import CaseInsensitiveDict
+from requests.utils import get_encoding_from_headers
 
 from lead_analyzer.models import FetchResult
 
@@ -107,14 +111,34 @@ def make_ps_result(**overrides):
     return PsResult(**defaults)
 
 
-class FakeResponse:
-    """Winziges Imitat von `requests.Response` für `fetch()`-Tests (Plan 02-02).
+class _ZaehlenderBody(io.BytesIO):
+    """Roher Antwort-Body (wie `resp.raw`), der mitzählt, wie viele Bytes gelesen wurden.
 
-    Liefert genau die Attribute/Methoden, die `fetch()` anfasst:
-    `.status_code`, `.url`, `.headers`, `.encoding`, `.apparent_encoding` und
-    `.iter_content(chunk)`. `body` darf `bytes` oder `str` sein; für den
-    Encoding-Fallback-Test gibt man latin-1/win-1252-kodierte Bytes plus
-    `encoding=None` herein, damit `apparent_encoding` greift.
+    So lässt sich prüfen, dass `fetch()` die 2-MB-Grenze wirklich einhält und nicht
+    nachträglich den ganzen Rest des Bodys nachlädt."""
+
+    gelesen = 0
+
+    def read(self, size=-1, /):
+        data = super().read(size)
+        self.gelesen += len(data)
+        return data
+
+
+class FakeResponse(requests.Response):
+    """Testdoppelgänger für `fetch()`-Tests, gebaut auf dem ECHTEN `requests.Response`.
+
+    Bis 2026-11-23 war das eine freie Imitation mit frei setzbarem `encoding` und
+    `apparent_encoding`. Das echte Objekt verhält sich anders: `encoding` kommt aus dem
+    Content-Type-Header (ohne charset bei `text/*` fest ISO-8859-1, sonst None), und
+    `apparent_encoding` liest `.content` — nach gestreamtem Lesen wirft das einen
+    RuntimeError bzw. lädt den ganzen Rest des Bodys nach. Die Imitation hat diese
+    Fehler darum versteckt (Idee 40, repo-cockpit code-praxis 2026-11-23).
+
+    Jetzt: echtes `requests.Response`, Body als `raw`-Strom, `encoding` genau wie im
+    requests-HTTPAdapter aus den Headern abgeleitet. Zusätzlich `.closed` (wurde die
+    Antwort geschlossen?) und `.raw.gelesen` (wie viele Body-Bytes wurden gelesen?).
+    `body` darf `bytes` oder `str` (wird UTF-8-kodiert) sein.
     """
 
     def __init__(
@@ -123,32 +147,16 @@ class FakeResponse:
         url: str = "https://example.ch/",
         headers: dict | None = None,
         body: bytes | str = b"<html><body>Inhalt</body></html>",
-        encoding: str | None = "utf-8",
-        apparent_encoding: str = "utf-8",
-        chunk_size: int = 8192,
     ):
+        super().__init__()
         self.status_code = status_code
         self.url = url
-        self.headers = headers or {}
-        self._body = body.encode("utf-8") if isinstance(body, str) else body
-        self.encoding = encoding
-        self.apparent_encoding = apparent_encoding
-        self._chunk_size = chunk_size
-
+        self.headers = CaseInsensitiveDict(headers or {})
+        self.raw = _ZaehlenderBody(body.encode("utf-8") if isinstance(body, str) else body)
+        # Wie requests.adapters.HTTPAdapter.build_response:
+        self.encoding = get_encoding_from_headers(self.headers)
         self.closed = False
-
-    def iter_content(self, chunk_size: int = 8192):
-        size = chunk_size or self._chunk_size
-        for i in range(0, len(self._body), size):
-            yield self._body[i : i + size]
 
     def close(self):
         self.closed = True
-
-    # Context-Manager: fetch() nutzt `with resp:` zum garantierten Schliessen.
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *exc):
-        self.close()
-        return False
+        super().close()
