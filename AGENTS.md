@@ -1,6 +1,6 @@
 # AGENTS.md — Lead-Analyzer
 
-Diese Datei ist die verbindliche Spezifikation für Codex. **Bindend sind die Akzeptanzkriterien (Abschnitt 4).** Den Lösungsweg (Sprache, Libraries, Architektur, ob LLM oder Heuristik) wählst du selbst — Hauptsache, die Akzeptanzkriterien sind erfüllt.
+Diese Datei ist die verbindliche Spezifikation für Coding-Agenten (Codex, Claude Code über `CLAUDE.md`). **Bindend sind die Akzeptanzkriterien (Abschnitt 4).** Den Lösungsweg (Sprache, Libraries, Architektur, ob LLM oder Heuristik) wählst du selbst — Hauptsache, die Akzeptanzkriterien sind erfüllt.
 
 ## 1. Ziel
 
@@ -78,4 +78,4 @@ Die Zahlungskräftigkeit lässt sich **nicht** aus der URL allein ableiten — s
 
 ## 7. Definition of Done
 
-Ein Lauf über `data/sample_input.xlsx` erzeugt eine Ausgabe-Excel mit allen Original-Spalten plus den zwei Score-Spalten, alle Zeilen bewertet (inkl. Edge-Cases), die README erklärt Setup und Aufruf, und die Akzeptanzkriterien AC1–AC10 sind erfüllt.
+Ein Lauf über `data/sample_input.xlsx` erzeugt eine Ausgabe-Excel mit allen Original-Spalten plus den zwei Score-Spalten, alle Zeilen bewertet (inkl. Edge-Cases), die README erklärt Setup und Aufruf, und die Akzeptanzkriterien AC1–AC11 sind erfüllt.
