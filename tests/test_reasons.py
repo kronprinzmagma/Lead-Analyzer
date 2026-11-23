@@ -38,7 +38,7 @@ def test_mixed_lists_only_driving_dims():
     assert "Dim4" in out
     assert "Dim6" in out
     # Reason-Notizen genannt
-    assert "wixsite.com" in out
+    assert "Gratis-Subdomain wixsite.com" in out
     assert "Meta-Description" in out
     assert "veraltet" in out
     # ok-Dims NICHT gelistet
