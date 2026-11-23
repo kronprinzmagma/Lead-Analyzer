@@ -80,7 +80,7 @@ def _legal_form_from_zefix(facts: ZefixFacts) -> tuple[int, list[str]]:
     return pts, [note]
 
 
-def _status_modifier(facts: "ZefixFacts | None") -> tuple[int, list[str]]:
+def _status_modifier(facts: ZefixFacts | None) -> tuple[int, list[str]]:
     """Post-aggregation penalty for non-active companies (DIFF-01/AC3).
 
     Angewendet NACH _map_to_1_5: gelöschte AG scored tiefer als aktive GmbH (AC3).

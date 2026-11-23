@@ -89,8 +89,10 @@ def test_parked_host_is_dead_severe():
 
 
 def test_parked_marker_in_body_is_dead_severe():
-    fr = make_fetch_result(final_url="https://kleinfirma.ch/",
-                           html="<html><title>Domain</title><body>Diese Domain steht zum Verkauf - buy this domain</body></html>")
+    fr = make_fetch_result(
+        final_url="https://kleinfirma.ch/",
+        html="<html><title>Domain</title><body>Diese Domain steht zum Verkauf - buy this domain</body></html>",
+    )
     v = existence.analyze(fr)
     assert v.level == "severe"
     assert "geparkt" in v.reason.lower() or "platzhalter" in v.reason.lower()

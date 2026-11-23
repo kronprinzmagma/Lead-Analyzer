@@ -1,0 +1,14 @@
+# ruff-Konfiguration (seit 2026-11-23, Katalog-Regel C1 aus repo-cockpit/code-praxis.yml).
+# Explizites Regelset per `select` (Empfehlung der ruff-Doku: https://docs.astral.sh/ruff/linter/):
+#   E/F  pycodestyle und Pyflakes (Grundfehler, ungenutzte Importe)
+#   B    flake8-bugbear (typische Fehlerquellen)
+#   UP   pyupgrade (veraltete Idiome)
+#   SIM  flake8-simplify
+# Aufruf lokal: uvx ruff check .
+# Zeilenlaenge 120 entspricht dem bestehenden Stil des Repos (Kommentare am Zeilenende).
+# target-version py310: aelteste Version, die der Code voraussetzt (zip(strict=True)).
+line-length = 120
+target-version = "py310"
+
+[lint]
+select = ["E", "F", "B", "UP", "SIM"]

@@ -13,7 +13,7 @@ from __future__ import annotations
 import csv
 import json
 import os
-from typing import Iterable
+from collections.abc import Iterable
 
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment
@@ -102,7 +102,7 @@ def _read_xlsx(path: str) -> tuple[list[str], list[RowRecord]]:
 
 def _read_csv(path: str, delimiter: str = ",") -> tuple[list[str], list[RowRecord]]:
     # utf-8-sig entfernt ein evtl. BOM; errors=replace verhindert Decode-Abstürze.
-    with open(path, "r", encoding="utf-8-sig", newline="", errors="replace") as fh:
+    with open(path, encoding="utf-8-sig", newline="", errors="replace") as fh:
         reader = csv.reader(fh, delimiter=delimiter)
         try:
             header_row = next(reader)

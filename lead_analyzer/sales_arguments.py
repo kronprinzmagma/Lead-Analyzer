@@ -34,7 +34,10 @@ _MAPPING: dict[int, dict[str, str]] = {
     2: {
         "defizit": "Kein HTTPS/SSL oder nur Gratis-Subdomain",
         "funktion": "SSL-Verschlüsselung + eigene Domain (statt Gratis-Subdomain)",
-        "nutzen": 'Kein „Nicht sicher“-Warnhinweis im Browser; eigene Adresse statt wixsite.com = Vertrauen & Seriosität',
+        "nutzen": (
+            'Kein „Nicht sicher“-Warnhinweis im Browser; '
+            'eigene Adresse statt wixsite.com = Vertrauen & Seriosität'
+        ),
     },
     3: {
         "defizit": "Nicht für Smartphones optimiert / langsam",

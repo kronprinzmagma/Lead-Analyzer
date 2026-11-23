@@ -14,6 +14,7 @@ stdlib only: hashlib, json, os, tempfile, threading, pathlib.
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
@@ -83,8 +84,6 @@ def put(key: str, payload: dict) -> None:
             os.replace(tmp, _path(key))   # atomarer Rename auf demselben Filesystem
         except BaseException:
             # Bei jedem Fehler die temp-Datei aufräumen, nie einen .tmp-Rest lassen.
-            try:
+            with contextlib.suppress(OSError):
                 os.unlink(tmp)
-            except OSError:
-                pass
             raise
