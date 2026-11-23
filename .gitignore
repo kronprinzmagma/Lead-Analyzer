@@ -16,3 +16,5 @@ cache/
 .pytest_cache/
 data/output*.xlsx
 .DS_Store
+.coverage
+.coverage.*
