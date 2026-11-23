@@ -141,12 +141,13 @@ as PageSpeed, to a documented estimate from three public signals:
 
 ## Try it yourself
 
-```bash
-python -m venv .venv
-source .venv/bin/activate            # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+Requires [uv](https://docs.astral.sh/uv/getting-started/installation/). Dependencies are declared in
+`pyproject.toml` and pinned to exact versions in `uv.lock`.
 
-python run.py data/sample_input.xlsx -o output/leads.xlsx
+```bash
+uv sync                              # creates .venv with the locked versions
+
+uv run python run.py data/sample_input.xlsx -o output/leads.xlsx
 ```
 
 That is the whole setup, and it needs **no API keys.** The example run over `data/sample_input.xlsx` scores 42 companies. Distribution in the documented sample run ([`docs/sample_run_rationale.md`](docs/sample_run_rationale.md)):
@@ -189,14 +190,17 @@ Copy the template first (`cp .env.example .env`) and fill in what you have:
 ### Tests
 
 ```bash
-pip install "pytest>=8"   # not in requirements.txt
-python -m pytest tests/ -q
+uv run ruff check .                  # lint (rules in ruff.toml)
+uv run pytest tests/ -q --cov        # tests + coverage report (minimum 90 %, see pyproject.toml)
 ```
 
-CI (`.github/workflows/test.yml`) runs the suite on Python 3.15 for every push to `main` and every pull request.
+pytest, pytest-cov and ruff are in the `dev` dependency group, which `uv sync` installs by default.
+CI (`.github/workflows/test.yml`) runs exactly these two steps on Python 3.15 for every push to `main`
+and every pull request, after `uv sync --locked` (fails if `uv.lock` is out of date with `pyproject.toml`).
+Dependabot keeps `uv.lock` up to date.
 
 `tests/test_musterseiten.py` checks the overall need score of twelve invented sample sites
-against `tests/musterseiten/sollnoten.toml`. After a rule change, `python tests/test_musterseiten.py`
+against `tests/musterseiten/sollnoten.toml`. After a rule change, `uv run python tests/test_musterseiten.py`
 lists target vs. current score for every sample site.
 
 ---

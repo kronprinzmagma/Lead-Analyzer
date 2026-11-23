@@ -1,11 +1,13 @@
 # Dependabot — einziges Dependency-Tooling in diesem Repo (Entscheid 2026-08-14).
 #
-# Das Repo hat nur requirements.txt, kein Lockfile — daher package-ecosystem "pip".
+# Seit 2026-11-23 (Idee 42): Abhaengigkeiten in pyproject.toml, feste Versionen in
+# uv.lock — daher package-ecosystem "uv" (aktualisiert pyproject.toml und uv.lock
+# zusammen). Vorher "pip" mit requirements.txt ohne Lockfile.
 # Die groups-Bloecke buendeln Updates zu wenigen PRs statt einem pro Advisory.
 
 version: 2
 updates:
-  - package-ecosystem: "pip"
+  - package-ecosystem: "uv"
     directory: "/"
     schedule:
       interval: "weekly"
