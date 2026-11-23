@@ -198,24 +198,18 @@ def test_too_many_redirects(monkeypatch):
 
 
 def test_encoding_fallback(monkeypatch):
-    """latin-1/win-1252-Bytes -> errors='replace', kein UnicodeDecodeError."""
-    # 0xfc = ü in latin-1; als utf-8 wäre das ein ungültiges Byte.
-    body = "Café Müller Grüße".encode("latin-1")
+    """latin-1-Bytes ohne jede Angabe -> kein UnicodeDecodeError, Umlaute richtig."""
+    # 0xfc = ü in latin-1; als utf-8 wäre das ein ungültiges Byte -> windows-1252.
+    body = "<html><body>Café Müller Grüsse</body></html>".encode("latin-1")
 
     def fake_get(self, url, **kw):
-        return FakeResponse(
-            status_code=200,
-            url=url,
-            body=body,
-            encoding=None,
-            apparent_encoding="ISO-8859-1",
-        )
+        return FakeResponse(status_code=200, url=url, headers={"Content-Type": "text/html"}, body=body)
 
     _patch_get(monkeypatch, fake_get)
     fr = fetch.fetch(["https://umlaut.ch/"], _CFG)
     assert fr.ok is True
-    assert fr.html is not None  # dekodiert, kein Crash
-    assert "ller" in fr.html
+    assert fr.error is None
+    assert "Café Müller Grüsse" in fr.html
 
 
 def test_byte_cap_stops_reading(monkeypatch):
@@ -223,7 +217,7 @@ def test_byte_cap_stops_reading(monkeypatch):
     big = b"a" * (3_000_000)
 
     def fake_get(self, url, **kw):
-        return FakeResponse(status_code=200, url=url, body=big, chunk_size=8192)
+        return FakeResponse(status_code=200, url=url, headers={"Content-Type": "text/html"}, body=big)
 
     _patch_get(monkeypatch, fake_get)
     fr = fetch.fetch(["https://big.ch/"], _CFG)
@@ -364,3 +358,111 @@ def test_midstream_read_error_keeps_host_exists(monkeypatch):
     verdict = existence.analyze(fr)
     assert verdict.dead is False
     assert scoring.bedarf_from_dim1(verdict) != 5
+
+
+# ---------- Idee 40: Zeichensatz und 2-MB-Grenze mit echtem Antwortobjekt ----------
+#
+# Alle Seiten synthetisch. FakeResponse ist seit 2026-11-23 ein echtes
+# requests.Response (conftest): encoding und apparent_encoding verhalten sich wie im
+# Betrieb. Vorher waren Seiten ohne charset-Angabe verstümmelt und Seiten ohne
+# Content-Type bzw. mit application/xhtml+xml wurden ganz verworfen.
+
+_UMLAUT_SEITE = (
+    "<html><head><title>Bäckerei Müller in Zürich</title></head>"
+    "<body><p>Über uns: Grüsse aus der Backstube, Öffnungszeiten.</p></body></html>"
+)
+
+
+def _hole(monkeypatch, headers, body):
+    resp = FakeResponse(status_code=200, url="https://muster.example/", headers=headers, body=body)
+
+    def fake_get(self, url, **kw):
+        return resp
+
+    _patch_get(monkeypatch, fake_get)
+    return fetch.fetch(["https://muster.example/"], _CFG), resp
+
+
+@pytest.mark.parametrize(
+    "headers",
+    [
+        {"Content-Type": "text/html; charset=utf-8"},      # war schon richtig
+        {"Content-Type": "text/html"},                      # requests rät ISO-8859-1
+        {},                                                 # kein Content-Type
+        {"Content-Type": "application/xhtml+xml"},          # kein text/* -> encoding None
+    ],
+    ids=["mit-charset", "ohne-charset", "ohne-content-type", "xhtml"],
+)
+def test_utf8_seite_wird_richtig_gelesen(monkeypatch, headers):
+    fr, _ = _hole(monkeypatch, headers, _UMLAUT_SEITE.encode("utf-8"))
+    assert fr.ok is True
+    assert fr.error is None, fr.error
+    assert "Bäckerei Müller in Zürich" in fr.html
+    assert "Über uns" in fr.html
+
+
+def test_meta_charset_gewinnt_ohne_header_angabe(monkeypatch):
+    """Keine charset-Angabe im Header, aber <meta charset> im Dokument -> Meta zählt."""
+    html = '<html><head><meta charset="windows-1252"><title>Preis 5 €</title></head><body>Grüsse</body></html>'
+    fr, _ = _hole(monkeypatch, {"Content-Type": "text/html"}, html.encode("windows-1252"))
+    assert "Preis 5 €" in fr.html
+    assert "Grüsse" in fr.html
+
+
+def test_header_charset_gewinnt_vor_meta(monkeypatch):
+    """Ausdrückliche Header-Angabe geht der Meta-Angabe vor (Reihenfolge wie im Browser)."""
+    html = '<html><head><meta charset="windows-1252"></head><body>Zürich</body></html>'
+    fr, _ = _hole(monkeypatch, {"Content-Type": "text/html; charset=utf-8"}, html.encode("utf-8"))
+    assert "Zürich" in fr.html
+
+
+def test_bom_gewinnt(monkeypatch):
+    """Byte Order Mark vor allem anderen; das BOM selbst landet nicht im Text."""
+    fr, _ = _hole(monkeypatch, {"Content-Type": "text/html; charset=iso-8859-1"},
+                  b"\xef\xbb\xbf" + _UMLAUT_SEITE.encode("utf-8"))
+    assert fr.html.startswith("<html>")
+    assert "Bäckerei Müller" in fr.html
+
+
+def test_latin1_angabe_wird_wie_im_browser_als_windows_1252_gelesen(monkeypatch):
+    """Viele ältere Seiten sagen iso-8859-1, schreiben aber windows-1252 (z.B. €)."""
+    fr, _ = _hole(monkeypatch, {"Content-Type": "text/html; charset=ISO-8859-1"},
+                  "<html><body>Preis 5 € für Grüsse</body></html>".encode("windows-1252"))
+    assert "Preis 5 € für Grüsse" in fr.html
+
+
+def test_ungueltiger_charset_faellt_auf_erkennung_zurueck(monkeypatch):
+    """Tippfehler im charset (kein gültiger Codec) -> kein Absturz, Inhalt lesbar (Review L3)."""
+    fr, _ = _hole(monkeypatch, {"Content-Type": "text/html; charset=utf-99"}, _UMLAUT_SEITE.encode("utf-8"))
+    assert fr.error is None
+    assert "Bäckerei Müller" in fr.html
+
+
+@pytest.mark.parametrize("headers", [{"Content-Type": "text/html"}, {}, {"Content-Type": "application/xhtml+xml"}],
+                         ids=["text-html", "ohne-content-type", "xhtml"])
+def test_2mb_grenze_gilt_in_allen_faellen(monkeypatch, headers):
+    """Es werden nie mehr als 2 MB (+ ein Lese-Block) vom Body gelesen — auch nicht
+    nachträglich für eine Zeichensatz-Schätzung über den ganzen Body."""
+    groesse = 5_000_000
+    fr, resp = _hole(monkeypatch, headers, b"<html><body>" + b"a" * groesse)
+    assert fr.error is None
+    assert resp.raw.gelesen <= fetch._MAX_BYTES + 8192
+    assert len(fr.html) <= fetch._MAX_BYTES + 8192
+
+
+def test_lesefehler_nennt_den_fehlertyp(monkeypatch):
+    """C2: der Fehlertyp steht in der Notiz statt verschluckt zu werden."""
+    class AbbruchBody(FakeResponse):
+        def iter_content(self, chunk_size=8192, decode_unicode=False):
+            yield b"<html>"
+            raise requests.exceptions.ChunkedEncodingError("abgebrochen")
+
+    resp = AbbruchBody(status_code=200, url="https://a.ch/", headers={"Content-Type": "text/html"})
+
+    def fake_get(self, url, **kw):
+        return resp
+
+    _patch_get(monkeypatch, fake_get)
+    fr = fetch.fetch(["https://a.ch/"], _CFG)
+    assert fr.html is None
+    assert fr.error == "Body-Lesefehler: ChunkedEncodingError"
