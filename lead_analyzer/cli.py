@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 
+from . import cache
 from .config import Config, load_dotenv
 from .pipeline import run
 from .table_io import InputError
@@ -40,6 +41,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Cache komplett umgehen (kein Lesen, kein Schreiben)",
     )
     p.add_argument(
+        "--cache-max-age", type=float, default=cache.DEFAULT_MAX_AGE_DAYS, metavar="TAGE",
+        help=f"Cache-Einträge, die älter sind, neu holen (Default: {cache.DEFAULT_MAX_AGE_DAYS} Tage)",
+    )
+    p.add_argument(
         "--no-pagespeed", action="store_true",
         help="PageSpeed-Anreicherung von Dim 3 abschalten (erzwingt Heuristik)",
     )
@@ -52,6 +57,10 @@ def main(argv: list[str] | None = None) -> int:
     # ein real exportierter Key gewinnt immer über die Datei (T-06-03).
     load_dotenv()
     args = build_parser().parse_args(argv)
+    if args.cache_max_age < 0:
+        print("FEHLER: --cache-max-age muss >= 0 sein", file=sys.stderr)
+        return 2
+    cache.set_max_age_days(args.cache_max_age)
     config = Config(
         input=args.input,
         output=args.output,
