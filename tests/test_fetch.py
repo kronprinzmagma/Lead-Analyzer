@@ -424,6 +424,24 @@ def test_bom_gewinnt(monkeypatch):
     assert "Bäckerei Müller" in fr.html
 
 
+def test_utf16_bom_wird_als_utf16_gelesen(monkeypatch):
+    """Ein UTF-16-BOM meint wirklich UTF-16; nur Angaben in Header/Meta werden auf
+    UTF-8 umgebogen (Wochenreport 2026-11-23)."""
+    for codec, bom in (("utf-16-le", b"\xff\xfe"), ("utf-16-be", b"\xfe\xff")):
+        fr, _ = _hole(monkeypatch, {"Content-Type": "text/html"}, bom + _UMLAUT_SEITE.encode(codec))
+        assert "Bäckerei Müller in Zürich" in fr.html, codec
+
+
+def test_abgeschnittenes_zeichen_an_der_2mb_grenze_kostet_nicht_die_umlaute(monkeypatch):
+    """Schneidet die 2-MB-Grenze ein Mehrbyte-Zeichen mittendrin ab, bleibt die Seite
+    UTF-8 und fällt nicht als Ganzes auf windows-1252 zurück (Wochenreport 2026-11-23)."""
+    body = b"<html><body>x" + ("ä" * 1_500_000).encode("utf-8")
+    fr, _ = _hole(monkeypatch, {"Content-Type": "text/html"}, body)
+    assert fr.error is None
+    assert "Ã" not in fr.html
+    assert fr.html.endswith("ää")
+
+
 def test_latin1_angabe_wird_wie_im_browser_als_windows_1252_gelesen(monkeypatch):
     """Viele ältere Seiten sagen iso-8859-1, schreiben aber windows-1252 (z.B. €)."""
     fr, _ = _hole(monkeypatch, {"Content-Type": "text/html; charset=ISO-8859-1"},
