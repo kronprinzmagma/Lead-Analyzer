@@ -9,7 +9,7 @@ Robustheit (AC4): get() wirft NIE — korrupte/fehlende Datei oder Schema-Mismat
 sind ein Miss (None -> Re-Fetch). Der Key ist ein sha256-Hexdigest (nur [0-9a-f]),
 damit kein Path-Traversal über den Dateinamen möglich ist (T-05-02).
 
-stdlib only: hashlib, json, os, tempfile, threading, pathlib.
+stdlib only: hashlib, json, os, tempfile, threading, time, pathlib.
 """
 
 from __future__ import annotations
@@ -20,6 +20,7 @@ import json
 import os
 import tempfile
 import threading
+import time
 from pathlib import Path
 
 # Modul-Lock serialisiert konkurrierende put()-Aufrufe (T-05-03, Phase-5-Threads).
@@ -30,12 +31,25 @@ _CACHE_DIR = Path("cache")
 # 2 (2026-11-23, Idee 40): Seiten-Text wird seit PR #16 anders dekodiert. Einträge mit
 # Schema 1 können Zeichensalat oder einen verworfenen Body («Body-Lesefehler») enthalten.
 _SCHEMA_VERSION = 2
+# Höchstalter eines Eintrags (Idee 41, 2026-11-23): Websites, PageSpeed- und Zefix-Werte
+# ändern sich. Ein älterer Eintrag ist ein Miss und wird neu geholt. Gemessen am
+# Änderungsdatum der Datei (put() schreibt jede Datei neu). None = kein Ablauf.
+DEFAULT_MAX_AGE_DAYS = 30
+_MAX_AGE_S: float | None = DEFAULT_MAX_AGE_DAYS * 86400
 
 
 def set_cache_dir(path) -> None:
     """Setzt das Cache-Verzeichnis (Tests rufen das mit tmp_path)."""
     global _CACHE_DIR
     _CACHE_DIR = Path(path)
+
+
+def set_max_age_days(days: float | None) -> None:
+    """Setzt das Höchstalter in Tagen (CLI --cache-max-age); None = kein Ablauf."""
+    global _MAX_AGE_S
+    if days is not None and days < 0:
+        raise ValueError("Höchstalter muss >= 0 Tage sein")
+    _MAX_AGE_S = None if days is None else days * 86400
 
 
 def key_for(candidates: list[str]) -> str:
@@ -56,9 +70,12 @@ def get(key: str) -> dict | None:
     """Liest den gecachten payload oder None. Wirft NIE (AC4).
 
     Miss-Gründe (alle -> None, Re-Fetch): Datei fehlt, JSON korrupt/truncated,
-    OS-Fehler, oder schema_version passt nicht (Schema-Bump).
+    OS-Fehler, schema_version passt nicht (Schema-Bump) oder der Eintrag ist
+    älter als das Höchstalter.
     """
     try:
+        if _MAX_AGE_S is not None and time.time() - _path(key).stat().st_mtime > _MAX_AGE_S:
+            return None
         with _path(key).open("r", encoding="utf-8") as f:
             entry = json.load(f)
     except (FileNotFoundError, json.JSONDecodeError, OSError, ValueError):

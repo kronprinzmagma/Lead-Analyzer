@@ -130,7 +130,7 @@ as PageSpeed, to a documented estimate from three public signals:
 - **Parse-once architecture.** Each page's HTML is parsed once and the same `soup` is shared by all HTML dimensions (dimension 1 works on its own copy).
 - **Robust by design.** Every row runs in its own exception boundary; network fetches never throw
   upward. A faulty row degrades to a sensible score instead of killing the run.
-- **Repeatable & resumable.** Results are **cached on disk per URL**. An aborted run loses nothing; the next run skips already-analyzed URLs.
+- **Repeatable & resumable.** Results are **cached on disk per URL**. An aborted run loses nothing; the next run skips already-analyzed URLs. Entries older than 30 days are fetched again, so a later run scores the current website.
 - **Parallelized with throttle.** Fetches run over a `ThreadPoolExecutor` (`--workers`, default 8);
   external APIs use retry/backoff against rate limits.
 - **Transparency over elegance.** Scores come from deterministic, documented heuristics (no LLM judgment in the scoring path), and every score traces back to its signals.
@@ -169,6 +169,7 @@ Why these example scores are plausible is explained in
 | `--no-reason` | Omit the reasoning column |
 | `--workers N` | Parallel fetch threads (default 8) |
 | `--no-cache` | Bypass the cache entirely |
+| `--cache-max-age DAYS` | Re-fetch cache entries older than this (default 30) |
 | `--no-pagespeed` | Turn off PageSpeed enrichment of dim 3 |
 
 ### Optional API keys (`.env`)

@@ -159,3 +159,56 @@ def test_no_cache_flag_bypasses(tmp_path, monkeypatch) -> None:
     fetch.fetch(cands, cfg)
     assert len(calls) == 2                        # kein Hit -> beide Male Netz
     assert list(tmp_path.iterdir()) == []         # nichts geschrieben
+
+
+# --------------------------------------------------------------------------- #
+# Höchstalter (Idee 41): alte Einträge werden neu geholt                       #
+# --------------------------------------------------------------------------- #
+
+def _alter_setzen(tmp_path, key: str, tage: float) -> None:
+    import os
+    import time
+    pfad = tmp_path / f"{key}.json"
+    zeit = time.time() - tage * 86400
+    os.utime(pfad, (zeit, zeit))
+
+
+def test_eintrag_ueber_hoechstalter_ist_miss(tmp_path, monkeypatch) -> None:
+    cache.set_cache_dir(tmp_path)
+    monkeypatch.setattr(cache, "_MAX_AGE_S", cache.DEFAULT_MAX_AGE_DAYS * 86400)
+    key = cache.key_for(["https://alt.ch"])
+    cache.put(key, {"url": "https://alt.ch"})
+    _alter_setzen(tmp_path, key, cache.DEFAULT_MAX_AGE_DAYS + 1)
+    assert cache.get(key) is None
+
+
+def test_eintrag_unter_hoechstalter_ist_hit(tmp_path, monkeypatch) -> None:
+    cache.set_cache_dir(tmp_path)
+    monkeypatch.setattr(cache, "_MAX_AGE_S", cache.DEFAULT_MAX_AGE_DAYS * 86400)
+    key = cache.key_for(["https://jung.ch"])
+    cache.put(key, {"url": "https://jung.ch"})
+    _alter_setzen(tmp_path, key, cache.DEFAULT_MAX_AGE_DAYS - 1)
+    assert cache.get(key) == {"url": "https://jung.ch"}
+
+
+def test_hoechstalter_einstellbar_und_abschaltbar(tmp_path, monkeypatch) -> None:
+    import pytest
+    cache.set_cache_dir(tmp_path)
+    monkeypatch.setattr(cache, "_MAX_AGE_S", cache._MAX_AGE_S)  # nach dem Test zurück
+    key = cache.key_for(["https://x.ch"])
+    cache.put(key, {"url": "https://x.ch"})
+    _alter_setzen(tmp_path, key, 400)
+    cache.set_max_age_days(None)
+    assert cache.get(key) == {"url": "https://x.ch"}
+    cache.set_max_age_days(7)
+    assert cache.get(key) is None
+    with pytest.raises(ValueError):
+        cache.set_max_age_days(-1)
+
+
+def test_cli_setzt_hoechstalter(monkeypatch) -> None:
+    from lead_analyzer import cli
+    monkeypatch.setattr(cache, "_MAX_AGE_S", cache._MAX_AGE_S)
+    assert cli.build_parser().parse_args(["x.csv"]).cache_max_age == cache.DEFAULT_MAX_AGE_DAYS
+    assert cli.build_parser().parse_args(["x.csv", "--cache-max-age", "5"]).cache_max_age == 5
+    assert cli.main(["x.csv", "--cache-max-age", "-1"]) == 2
