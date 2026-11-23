@@ -12,8 +12,8 @@ Dies ist die EINZIGE Komponente, die das Netz berührt. Sie ist hart abgesichert
   gestaffelt; der `sleep` ist INJIZIERT (Default `time.sleep`, Tests übergeben ein No-Op ->
   KEINE echten Wartezeiten).
 - **Eigener Cache-Namespace**: jedes Resultat wird unter `cache.key_for(["pagespeed-v2",
-  "mobile", url])` gecacht (v2 seit 2026-11-19: enthält auch die CrUX-Felddaten); ein Cache-Hit kostet WEDER Netz NOCH Budget. Fehler werden NICHT
-  gecacht.
+  "mobile", url])` gecacht (v2 seit 2026-11-19: enthält auch die CrUX-Felddaten); ein
+  Cache-Hit kostet WEDER Netz NOCH Budget. Fehler werden NICHT gecacht.
 - **None bei JEDEM Fehler, NIE ein Raise**: Timeout/non-200/malformed-JSON/429-nach-Retries/
   Budget-erschöpft -> `score()` liefert `None`. So kann ein PSI-Problem nie den Per-Zeilen-
   Pfad crashen oder einen Score verfälschen (Degradation -> Viewport-Heuristik).
@@ -83,7 +83,7 @@ class PageSpeedClient:
         self._sleep = sleep  # injiziert -> Tests übergeben ein No-Op, kein echtes Warten
 
     @classmethod
-    def from_config(cls, config) -> "PageSpeedClient | None":
+    def from_config(cls, config) -> PageSpeedClient | None:
         """Baut den geteilten Client oder None (Standard OFF ohne Key).
 
         None gdw. `use_pagespeed` falsy ODER kein `PAGESPEED_API_KEY` in der Umgebung.
@@ -186,7 +186,7 @@ def _backoff_delay(headers, attempt: int) -> float:
     return base + random.uniform(0.0, 0.5)
 
 
-def _parse_retry_after(header) -> "float | None":
+def _parse_retry_after(header) -> float | None:
     """`Retry-After`-Header als Sekunden (int) lesen; nicht parsebar -> None.
 
     PSI sendet die Sekunden-Variante; das HTTP-Date-Format wird hier bewusst nicht

@@ -96,7 +96,7 @@ class ZefixClient:
         self._sleep = sleep  # injiziert -> Tests uebergeben ein No-Op, kein echtes Warten
 
     @classmethod
-    def from_config(cls, config) -> "ZefixClient | None":
+    def from_config(cls, config) -> ZefixClient | None:
         """Baut den geteilten Client oder None (ohne Credentials kein Client).
 
         None gdw. `use_zefix` falsy ODER kein `ZEFIX_USER`/`ZEFIX_PASSWORD` in der
@@ -122,7 +122,7 @@ class ZefixClient:
         """True gdw. Credentials vorhanden sind UND das Budget noch nicht erschoepft ist."""
         return self._auth is not None and not self._budget.exhausted()
 
-    def lookup(self, name: str, canton: str | None = None) -> "ZefixFacts | None":
+    def lookup(self, name: str, canton: str | None = None) -> ZefixFacts | None:
         """Liefert ein ZefixFacts (200, genau 1 Treffer) oder None. Wirft NIE.
 
         Reihenfolge: Kurzname-Guard -> Cache-Hit -> Budget-Gate -> Netz -> Parse ->
@@ -166,7 +166,7 @@ class ZefixClient:
 
     # --- Netz: gekappte Retries unter Semaphore, Retry-After-bewusst ---------- #
 
-    def _request(self, name: str, canton: str | None) -> "list | None":
+    def _request(self, name: str, canton: str | None) -> list | None:
         """POST Zefix /company/search mit gekappten Retries + Backoff. Liefert list | None, wirft NIE.
 
         Die Semaphore umschliesst NUR das `requests.post` -> nie mehr als N in-flight (AC8).
@@ -210,7 +210,7 @@ class ZefixClient:
         return None
 
 
-def _parse(results) -> "ZefixFacts | None":
+def _parse(results) -> ZefixFacts | None:
     """Genau 1 Ergebnis -> ZefixFacts; 0 oder >1 -> None (ambiguous = nicht gefunden).
 
     Hard rule: nie den ersten Eintrag aus einer mehrdeutigen Liste verwenden (AC5/T-08-06).
@@ -261,7 +261,7 @@ def _backoff_delay(headers, attempt: int) -> float:
     return base + random.uniform(0.0, 0.5)
 
 
-def _parse_retry_after(header) -> "float | None":
+def _parse_retry_after(header) -> float | None:
     """`Retry-After`-Header als Sekunden (int) lesen; nicht parsebar -> None.
 
     Zefix sendet moeglicherweise die Sekunden-Variante (nicht dokumentiert); das

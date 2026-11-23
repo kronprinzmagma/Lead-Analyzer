@@ -126,7 +126,7 @@ class FetchResult:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, d: dict) -> "FetchResult":
+    def from_dict(cls, d: dict) -> FetchResult:
         """Rekonstruiert aus einem Cache-dict. Defensiv: fehlende Keys tolerieren,
         damit ein schema-Bump nie KeyError wirft (AC4)."""
         return cls(
