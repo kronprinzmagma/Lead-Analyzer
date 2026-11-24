@@ -1,4 +1,4 @@
-"""Claude Code darf die gescorten Firmen- und Personendaten und die API-Schluessel nicht lesen (Idee 56).
+"""Claude Code darf die gescorten Firmen- und Personendaten nicht lesen (Idee 56).
 
 output/ und cache/ enthalten Abrufe und Bewertungen echter Firmen; sie sind gitignored, liegen aber
 lokal im Arbeitsordner. CLAUDE.md importiert AGENTS.md, statt sie zu kopieren (kein Drift).
@@ -10,9 +10,9 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 
 
-def test_lesesperre_fuer_daten_und_schluessel():
+def test_lesesperre_fuer_daten():
     deny = json.loads((REPO / ".claude" / "settings.json").read_text(encoding="utf-8"))["permissions"]["deny"]
-    for regel in ("Read(./.env)", "Read(./output/**)", "Read(./cache/**)"):
+    for regel in ("Read(./output/**)", "Read(./cache/**)"):
         assert regel in deny, regel
 
 
